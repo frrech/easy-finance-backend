@@ -1,6 +1,6 @@
-const Sequelize = require('sequelize')
-const bcrypt = require('bcryptjs')
-const database = require('../config/db')
+import { Sequelize } from "sequelize";
+import bcrypt from "bcryptjs";
+import database from "../config/db"
 async function correctPassword(typedPassword){
     return bcrypt.compare(typedPassword, this.password)
 }

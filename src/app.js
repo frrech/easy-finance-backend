@@ -5,15 +5,16 @@ import morgan from 'morgan';
 import { errorHandler } from './middlewares/errorHandler.js';
 import userRoutes from './routes/user.routes.js';
 const app = express();
-import { Sequelize } from "sequelize";
-const sequelize = new Sequelize(
-    process.env.DB_NAME || 'easyfinancedb',
-    process.env.DB_USER || 'root',
-    process.env.DB_PASSWORD,
-    {    dialect:'mysql', 
-    host:'localhost',
-    port:3306
-});
+import sequelize from './config/db.js';
+// import { Sequelize } from "sequelize";
+// const sequelize = new Sequelize(
+//     process.env.DB_NAME || 'easyfinancedb',
+//     process.env.DB_USER || 'root',
+//     process.env.DB_PASSWORD,
+//     {    dialect:'mysql', 
+//     host:'localhost',
+//     port:3306
+// });
 
 (async () => {
     await sequelize.sync();
