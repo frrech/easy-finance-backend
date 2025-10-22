@@ -4,11 +4,19 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { errorHandler } from './middlewares/errorHandler.js';
 import userRoutes from './routes/user.routes.js';
-
 const app = express();
-const db = require('../db/db')
+import { Sequelize } from "sequelize";
+const sequelize = new Sequelize(
+    process.env.DB_NAME || 'easyfinancedb',
+    process.env.DB_USER || 'root',
+    process.env.DB_PASSWORD,
+    {    dialect:'mysql', 
+    host:'localhost',
+    port:3306
+});
+
 (async () => {
-    await db.sync()
+    await sequelize.sync();
 
     // Middlewares
     app.use(express.json());

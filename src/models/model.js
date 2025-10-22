@@ -1,7 +1,6 @@
 const Sequelize = require('sequelize')
 const bcrypt = require('bcryptjs')
-const database = require('../../db/db')
-
+const database = require('../config/db')
 async function correctPassword(typedPassword){
     return bcrypt.compare(typedPassword, this.password)
 }
@@ -127,9 +126,8 @@ Arquivo_mensal.hasMany(Movimentacao);
 Movimentacao.belongsTo(Arquivo_mensal);
 Categoria.hasMany(Movimentacao);
 Movimentacao.belongsTo(Categoria);
-model.exports = {
-    Usuario,
+
+export {Usuario,
     Categoria,
     Arquivo_mensal,
-    Movimentacao
-};
+    Movimentacao};
