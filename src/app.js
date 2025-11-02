@@ -4,17 +4,11 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { errorHandler } from './middlewares/errorHandler.js';
 import userRoutes from './routes/user.routes.js';
+import categoryRoutes from './routes/category.router.js';
+import movimentacaoRouter from './routes/movimentacao.router.js';
+import arquivoRouter from './routes/arquivo_mensal.router.js'
 const app = express();
 import sequelize from './config/db.js';
-// import { Sequelize } from "sequelize";
-// const sequelize = new Sequelize(
-//     process.env.DB_NAME || 'easyfinancedb',
-//     process.env.DB_USER || 'root',
-//     process.env.DB_PASSWORD,
-//     {    dialect:'mysql', 
-//     host:'localhost',
-//     port:3306
-// });
 
 (async () => {
     await sequelize.sync();
@@ -27,6 +21,9 @@ import sequelize from './config/db.js';
 
     // Routes
     app.use('/api/users', userRoutes);
+    app.use('/api/category', categoryRoutes);
+    app.use('/api/movimentacao', movimentacaoRouter);
+    app.use('/api/arquivo', arquivoRouter);
 
     // Error Handler
     app.use(errorHandler);
