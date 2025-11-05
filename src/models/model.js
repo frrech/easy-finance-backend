@@ -1,7 +1,6 @@
-const Sequelize = require('sequelize')
-const bcrypt = require('bcryptjs')
-const database = require('../../db/db')
-
+import { Sequelize } from "sequelize";
+import bcrypt from "bcryptjs";
+import database from "../config/db.js"
 async function correctPassword(typedPassword){
     return bcrypt.compare(typedPassword, this.password)
 }
@@ -120,16 +119,15 @@ const Movimentacao = database.define('Movimentacao', {
 Categoria.belongsToMany(Usuario, {through: 'Usuario_Categoria'});
 Usuario.belongsToMany(Categoria, {through: 'Usuario_Categoria'});
 Usuario.hasMany(Arquivo_mensal);
-Arquivo_mensal.belongsTo(Team);
+Arquivo_mensal.belongsTo(Usuario);
 Usuario.hasMany(Movimentacao);
 Movimentacao.belongsTo(Usuario);
 Arquivo_mensal.hasMany(Movimentacao);
 Movimentacao.belongsTo(Arquivo_mensal);
 Categoria.hasMany(Movimentacao);
 Movimentacao.belongsTo(Categoria);
-model.exports = {
-    Usuario,
+
+export {Usuario,
     Categoria,
     Arquivo_mensal,
-    Movimentacao
-};
+    Movimentacao};
