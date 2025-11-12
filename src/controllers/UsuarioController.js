@@ -99,46 +99,38 @@ export async function loginUsuario(req, res) {
     const { email, senha } = req.body;
     console.log("📥 Login request:", { email, senha });
 
-    const user = await UsuarioRepository.findByEmail(email);
-    console.log("🔍 User from DB:", user);
+    const usuario = await Usuario.findOne({ where: { email } });
+    console.log("🔍 User from DB:", usuario);
 
-    if (!user) {
-      console.log("⚠️ Usuário não encontrado");
+    if (!usuario) {
       return res.status(404).json({ message: "Usuário não encontrado" });
     }
 
-    // ✅ Always treat password as string to avoid numeric vs string mismatches
-    const typedPassword = String(senha).trim();
-
     console.log("🔐 Comparing password...");
-    const validPassword = await bcrypt.compare(typedPassword, user.senha);
-    console.log("✅ Password match result:", validPassword);
+    const passwordMatch = await bcrypt.compare(senha, usuario.senha);
+    console.log("✅ Password match result:", passwordMatch);
 
-    if (!validPassword) {
-      console.log("❌ Senha incorreta");
+    if (!passwordMatch) {
       return res.status(401).json({ message: "Senha incorreta" });
     }
 
-    console.log("🪪 Generating JWT...");
     const token = jwt.sign(
-      { idUsuario: user.idUsuario, email: user.email },
-      process.env.JWT_SECRET || "defaultsecret",
-      { expiresIn: process.env.JWT_EXPIRATION || "1h" }
+      { idUsuario: usuario.idUsuario, email: usuario.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
     );
-
-    console.log("✅ Token generated:", token);
 
     res.status(200).json({
       message: "Login bem-sucedido!",
       token,
       usuario: {
-        idUsuario: user.idUsuario,
-        nome: user.nome,
-        email: user.email,
+        idUsuario: usuario.idUsuario,
+        nome: usuario.nome,
+        email: usuario.email,
       },
     });
   } catch (err) {
-    console.error("❌ Error in loginUsuario:", err);
+    console.error("❌ Erro no loginUsuario:", err);
     res.status(500).json({ message: "Erro interno no login" });
   }
 }
