@@ -1,0 +1,44 @@
+┌─────────────────────┐          1 ────────∞          ┌────────────────────┐
+│      Usuario        │───────────────────────────────│     Categoria      │
+│─────────────────────│                               │────────────────────│
+│ id_usuario (PK)     │                               │ id_categoria (PK)  │
+│ nome                │                               │ nome               │
+│ email (unique)      │                               │ tipo (entrada/saida)│
+│ senha (hashed)      │                               │ usuario_id (FK)    │
+│ createdAt           │                               │ createdAt          │
+│ updatedAt           │                               │ updatedAt          │
+└─────────────────────┘                               └────────────────────┘
+          │ 1
+          │
+          │ ∞
+┌─────────────────────┐
+│    Movimentacao     │
+│─────────────────────│
+│ id_movimentacao (PK)│
+│ descricao           │
+│ valor               │
+│ data_movimentacao   │
+│ tipo (entrada/saida)│
+│ categoria_id (FK)   │───┐
+│ usuario_id (FK)     │   │
+│ arquivo_mensal_id(FK)│  │
+│ createdAt           │   │
+│ updatedAt           │   │
+└─────────────────────┘   │
+                          │
+           ┌──────────────┘
+           │
+           │ 1
+           │ ∞
+┌──────────────────────────┐
+│     ArquivoMensal        │
+│──────────────────────────│
+│ id_arquivo_mensal (PK)   │
+│ mes (1–12)               │
+│ ano                      │
+│ saldo_final              │
+│ caminho_arquivo          │
+│ usuario_id (FK)          │
+│ createdAt                │
+│ updatedAt                │
+└──────────────────────────┘

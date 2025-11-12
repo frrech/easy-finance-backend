@@ -3,30 +3,32 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { errorHandler } from './middlewares/errorHandler.js';
-import userRoutes from './routes/user.routes.js';
-import categoryRoutes from './routes/category.router.js';
-import movimentacaoRouter from './routes/movimentacao.router.js';
-import arquivoRouter from './routes/arquivo_mensal.router.js'
-const app = express();
+
+import UsuarioRouter from './routes/UsuarioRouter.js';
+import CategoriaRouter from './routes/CategoriaRouter.js';
+import MovimentacaoRouter from './routes/MovimentacaoRouter.js';
+import ArquivoMensalRouter from './routes/ArquivoMensalRouter.js';
+import AuthRouter from './routes/AuthRouter.js';
+
 import sequelize from './config/db.js';
+import { setupDatabase } from './config/dbSetup.js';
+import { swaggerUi, swaggerSpec } from "./config/swagger.js";
 
-(async () => {
-    await sequelize.sync();
+const app = express();
 
-    // Middlewares
-    app.use(express.json());
-    app.use(cors());
-    app.use(helmet());
-    app.use(morgan('dev'));
+app.use(express.json());
+app.use(cors());
+app.use(helmet());
+app.use(morgan('dev'));
 
-    // Routes
-    app.use('/api/users', userRoutes);
-    app.use('/api/category', categoryRoutes);
-    app.use('/api/movimentacao', movimentacaoRouter);
-    app.use('/api/arquivo', arquivoRouter);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-    // Error Handler
-    app.use(errorHandler);
-})();
+app.use("/api/auth", AuthRouter);
+app.use('/api/usuario', UsuarioRouter);
+app.use('/api/categoria', CategoriaRouter);
+app.use('/api/movimentacao', MovimentacaoRouter);
+app.use('/api/arquivo', ArquivoMensalRouter);
 
-export default app;
+app.use(errorHandler);
+
+export { app, sequelize, setupDatabase };
