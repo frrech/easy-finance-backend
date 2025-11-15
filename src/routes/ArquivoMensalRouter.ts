@@ -1,5 +1,5 @@
-import { Router } from 'express';
-import * as ArquivoMensalController from '../controllers/ArquivoMensalController.js';
+import { Router } from "express";
+import * as ArquivoMensalController from "../controllers/ArquivoMensalController";
 
 const router = Router();
 
@@ -62,29 +62,7 @@ const router = Router();
  *       201:
  *         description: File created successfully
  */
-router.post('/', ArquivoMensalController.createArquivoMensal);
-
-/**
- * @swagger
- * /api/arquivo/{id}:
- *   get:
- *     summary: Get a monthly file by ID
- *     tags: [Arquivos Mensais]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: File found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ArquivoMensal'
- */
-router.get('/:id', ArquivoMensalController.listArquivoByID);
+router.post("/", ArquivoMensalController.createArquivoMensal);
 
 /**
  * @swagger
@@ -101,14 +79,26 @@ router.get('/:id', ArquivoMensalController.listArquivoByID);
  *     responses:
  *       200:
  *         description: List of user’s monthly files
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/ArquivoMensal'
  */
-router.get('/usuario/:usuario_id', ArquivoMensalController.listArquivosByUsuario);
+router.get(
+  "/usuario/:usuario_id",
+  ArquivoMensalController.listArquivosByUsuario
+);
+
+/**
+ * @swagger
+ * /api/arquivo/{id}:
+ *   get:
+ *     summary: Get a monthly file by ID
+ *     tags: [Arquivos Mensais]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ */
+router.get("/:id", ArquivoMensalController.listArquivoByID);
 
 /**
  * @swagger
@@ -120,19 +110,8 @@ router.get('/usuario/:usuario_id', ArquivoMensalController.listArquivosByUsuario
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ArquivoMensal'
- *     responses:
- *       200:
- *         description: File updated
  */
-router.put('/:id', ArquivoMensalController.updateArquivoMensal);
+router.put("/:id", ArquivoMensalController.updateArquivoMensal);
 
 /**
  * @swagger
@@ -140,16 +119,7 @@ router.put('/:id', ArquivoMensalController.updateArquivoMensal);
  *   delete:
  *     summary: Delete a monthly file
  *     tags: [Arquivos Mensais]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: File deleted
  */
-router.delete('/:id', ArquivoMensalController.deleteArquivo);
+router.delete("/:id", ArquivoMensalController.deleteArquivo);
 
 export default router;
