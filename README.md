@@ -1,17 +1,19 @@
 # 💰 Easy Finance API
 
-API RESTful para gerenciamento financeiro pessoal, desenvolvida em **Node.js**, **Express**, **Sequelize** e **MySQL**, com autenticação JWT e documentação via Swagger.
+API RESTful para gerenciamento financeiro pessoal, desenvolvida em **Node.js**, **Express**, **Sequelize** e **MySQL**, com autenticação JWT, arquitetura em camadas e suíte completa de testes automatizados usando **Jest + Supertest**.
 
 ---
 
 ## 🚀 Tecnologias Utilizadas
 
-- **Node.js** + **Express** — Servidor e roteamento
-- **Sequelize ORM** — Modelagem e integração com MySQL
-- **MySQL** — Banco de dados relacional
-- **JWT (JSON Web Token)** — Autenticação de usuários
-- **bcrypt** — Criptografia de senhas
-- **Swagger UI** — Documentação interativa da API
+- **Node.js + Express** – Servidor e roteamento
+- **Sequelize ORM** – Modelagem e comunicação com MySQL
+- **MySQL** – Banco de dados relacional
+- **JWT** – Autenticação baseada em tokens
+- **bcryptjs** – Hash de senhas
+- **dotenv** – Variáveis de ambiente
+- **Jest + Supertest** – Testes automatizados (integração)
+- **Swagger UI** – Documentação interativa
 
 ---
 
@@ -22,16 +24,20 @@ API RESTful para gerenciamento financeiro pessoal, desenvolvida em **Node.js**, 
 ```bash
 git clone https://github.com/seu-usuario/easy-finance.git
 cd easy-finance
+```
 
-2. Instalar dependências
+### 2. Instalar dependências
 
+```bash
 npm install
+```
 
-3. Configurar variáveis de ambiente
+### 3. Configurar variáveis de ambiente
 
-Crie um arquivo .env na raiz do projeto com o seguinte conteúdo:
+Crie um arquivo `.env` na raiz:
 
-# Banco de dados
+```
+# Banco de Dados
 DB_HOST=localhost
 DB_USER=easyfinance_user
 DB_PASSWORD=sua_senha
@@ -42,92 +48,197 @@ DB_PORT=3306
 JWT_SECRET=sua_chave_secreta
 JWT_EXPIRATION=1h
 
-# Outras configurações
+# App
 PORT=3000
 NODE_ENV=development
 ```
 
-### 4. Iniciar o servidor
+E para testes, existe também:
 
-npm start
-
-A API será executada em:
-
-    📍 http://localhost:3000
-
-📖 Documentação Swagger
-
-Acesse a documentação interativa em:
-
-    👉 http://localhost:3000/api-docs
-
-Lá você pode testar os endpoints diretamente pelo navegador, incluindo rotas protegidas com JWT.
-🔐 Autenticação
-
-A autenticação é feita via token JWT.
-
-    Faça login com:
 ```
+.env.test
+```
+
+---
+
+## ▶️ Iniciar o servidor
+
+```bash
+npm start
+```
+
+A aplicação subirá em:
+
+```
+http://localhost:3000
+```
+
+---
+
+## 📖 Documentação Swagger
+
+Acesse:
+
+```
+http://localhost:3000/api-docs
+```
+
+Permite testar todos os endpoints diretamente pelo navegador.
+
+---
+
+## 🔐 Autenticação JWT
+
+Exemplo de login:
+
+```json
 {
-  "email": "seu@email.com",
+  "email": "usuario@test.com",
   "senha": "123456"
 }
 ```
-Copie o token retornado e clique em Authorize no Swagger, inserindo:
 
-    Bearer <seu_token_aqui>
+Após o login:
 
-    Assim, as rotas protegidas (como /api/usuario/me) serão acessíveis.
+1. Copie o token retornado
+2. Clique em **Authorize** no Swagger
+3. Cole como:
 
-### 🧩 Endpoints Principais
-#### 👤 Usuário
 ```
-Método	Endpoint	Descrição	Autenticação
-POST	/api/usuario	Cria um novo usuário	❌ Não requer
-POST	/api/usuario/login	Realiza login e retorna token JWT	❌ Não requer
-GET	/api/usuario/me	Retorna o usuário autenticado	✅ Requer JWT
-GET	/api/usuario/:id	Busca usuário por ID	✅ Requer JWT
-PUT	/api/usuario/:id	Atualiza dados do usuário	✅ Requer JWT
-DELETE	/api/usuario/:id	Remove um usuário	✅ Requer JWT
+Bearer <seu_token_aqui>
 ```
+
+Agora todas as rotas protegidas ficam acessíveis.
+
+---
+
+## 🧩 Endpoints Principais
+
+### 👤 Usuários
+
+| Método | Rota               | Descrição                     | JWT |
+|--------|--------------------|-------------------------------|-----|
+| POST   | /api/usuario       | Criar usuário                 | ❌  |
+| POST   | /api/usuario/login | Login + retorno do token      | ❌  |
+| GET    | /api/usuario/me    | Dados do próprio usuário      | ✅  |
+| GET    | /api/usuario/:id   | Buscar usuário por ID         | ✅  |
+| PUT    | /api/usuario/:id   | Atualizar usuário             | ✅  |
+| DELETE | /api/usuario/:id   | Remover usuário               | ✅  |
+
+---
+
+### 📁 Categorias
+
+| Método | Rota                   | Descrição                      | JWT |
+|--------|------------------------|--------------------------------|-----|
+| POST   | /api/categoria         | Criar categoria                | ✅  |
+| GET    | /api/categoria         | Listar categorias              | ✅  |
+| GET    | /api/categoria/:id     | Buscar categoria por ID        | ✅  |
+| PUT    | /api/categoria/:id     | Atualizar categoria            | ✅  |
+| DELETE | /api/categoria/:id     | Deletar categoria              | ✅  |
+
+(Com regras para impedir acesso entre usuários diferentes.)
+
+---
+
 ### 🧠 Lógica de Senha
 
-    Senhas são automaticamente criptografadas com bcrypt:
+- Senhas são **sempre criptografadas com bcrypt**:
+  - antes de criar (`beforeCreate`)
+  - antes de atualizar, caso tenha sido alterada (`beforeUpdate`)
+- Login usa `bcrypt.compare` para validar credenciais
 
-        Na criação (beforeCreate hook)
+---
 
-        Na atualização, caso o campo senha seja alterado (beforeUpdate hook)
+## 🧱 Estrutura do Projeto (real)
 
-    Durante o login, a comparação entre senha informada e senha armazenada é feita com bcrypt.compare.
-
-### 🧰 Estrutura do Projeto
 ```
 src/
 ├── config/
-│   └── database.js          # Configuração do Sequelize e MySQL
+│   ├── db.js
+│   └── databaseSetup.js
 ├── controllers/
-│   └── usuarioController.js # Lógica de CRUD e autenticação
+│   ├── ArquivoMensalController.js
+│   ├── CategoriaController.js
+│   ├── MovimentacaoController.js
+│   └── UsuarioController.js
 ├── middlewares/
-│   └── authMiddleware.js    # Validação do token JWT
+│   └── authMiddleware.js
 ├── models/
-│   └── Usuario.js           # Modelo Sequelize com hooks de hash
-├── repositories/
-│   └── UsuarioRepository.js # Abstração de acesso ao banco
+│   └── model.js
+├── repository/
+│   ├── ArquivoMensalRepository.js
+│   ├── CategoriaRepository.js
+│   ├── MovimentacaoRepository.js
+│   └── UsuarioRepository.js
 ├── routes/
-│   └── usuarioRoutes.js     # Rotas REST do módulo de usuário
-├── swagger/
-│   └── swagger.js           # Configuração do Swagger
-└── server.js                # Ponto de entrada da aplicação
+│   ├── ArquivoMensalRouter.js
+│   ├── CategoriaRouter.js
+│   ├── MovimentacaoRouter.js
+│   └── UsuarioRouter.js
+├── services/
+│   ├── ArquivoMensalService.js
+│   ├── CategoriaService.js
+│   ├── MovimentacaoService.js
+│   └── UsuarioService.js
+├── utils/
+│   └── (funções auxiliares)
+├── app.js
+└── server.js
 ```
-## 🧪 Testando com cURL
+
+---
+
+## 🧪 Testes Automatizados
+
+A suíte utiliza **Jest + Supertest**.
+
+### Rodar testes
+
+```bash
+npm test
+```
+
+### Estrutura dos testes
+
+```
+tests/
+├── utils/
+│   └── testClient.js
+├── categorias.test.js
+├── users.test.js
+└── setup.js
+```
+
+Todos os testes realizam chamadas reais à API, usando banco isolado no ambiente de teste.
+
+---
+
+## 🧪 Exemplos com cURL
+
 ### Login
-```
+
+```bash
 curl -X POST http://localhost:3000/api/usuario/login \
   -H "Content-Type: application/json" \
   -d '{"email": "joao@email.com", "senha": "123456"}'
 ```
-### Usuário autenticado
-```
+
+### Obter usuário autenticado
+
+```bash
 curl -X GET http://localhost:3000/api/usuario/me \
-  -H "Authorization: Bearer <seu_token_jwt>"
+  -H "Authorization: Bearer <token>"
 ```
+
+---
+
+## ✔️ Status Atual
+
+- ✔️ Backend padronizado  
+- ✔️ Arquitetura em camadas  
+- ✔️ Autenticação JWT funcional  
+- ✔️ Testes 100% passando  
+- ✔️ Validações completas  
+- ✔️ Estrutura consistente de models + FKs  
+- ✔️ Pronto para CI/CD e deploy
