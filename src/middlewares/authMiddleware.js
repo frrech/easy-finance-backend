@@ -18,7 +18,7 @@ export function authenticateToken(req, res, next) {
     console.log("🔍 Decoded token:", decoded);
 
     req.user = {
-      idUsuario: Number(decoded.idUsuario),
+      usuarioID: Number(decoded.usuarioID),
       email: decoded.email,
     };
 

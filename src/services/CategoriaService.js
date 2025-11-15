@@ -1,38 +1,46 @@
 import * as CategoriaRepository from "../repository/CategoriaRepository.js";
 
-export async function createCategoria(categoriaData) {
-  return await CategoriaRepository.createCategoria(categoriaData);
-}
-
-export async function listCategorias() {
-  return await CategoriaRepository.listAllCategorias();
-}
-
-export async function getCategoriaById(id) {
-  const categoria = await CategoriaRepository.listCategoriaById(id);
-  if (!categoria) {
-    throw new Error("Categoria not found");
+export async function createCategoria(data, usuarioId) {
+  if (!data.nome || !data.tipo) {
+    const error = new Error("Nome e tipo são obrigatórios");
+    error.status = 400;
+    throw error;
   }
-  return categoria;
+
+  return CategoriaRepository.createCategoria({
+    nome: data.nome,
+    tipo: data.tipo,
+    usuarioId,
+  });
 }
 
-export async function updateCategoria(id, data) {
-  const [updated] = await CategoriaRepository.updateCategoria(id, data);
-  if (!updated) {
-    throw new Error("Categoria not found or not updated");
+export async function listCategorias(usuarioId) {
+  return CategoriaRepository.listCategoriasByUsuario(usuarioId);
+}
+
+export async function getCategoriaById(id, usuarioId) {
+  return CategoriaRepository.listCategoriaById(id, usuarioId);
+}
+
+export async function updateCategoria(id, usuarioId, data) {
+  const existing = await getCategoriaById(id, usuarioId);
+  if (!existing) {
+    const error = new Error("Categoria não encontrada");
+    error.status = 404;
+    throw error;
   }
-  return await getCategoriaById(id);
+
+  await CategoriaRepository.updateCategoria(id, usuarioId, data);
+  return getCategoriaById(id, usuarioId);
 }
 
-export async function deleteCategoria(id) {
-  const deleted = await CategoriaRepository.deleteCategoria(id);
-  if (!deleted) {
-    throw new Error("Categoria not found or already deleted");
+export async function deleteCategoria(id, usuarioId) {
+  const existing = await getCategoriaById(id, usuarioId);
+  if (!existing) {
+    const error = new Error("Categoria não encontrada");
+    error.status = 404;
+    throw error;
   }
-  return { message: "Categoria deleted successfully" };
-}
 
-export async function listCategoriasByUsuario(usuario_id) {
-  return await CategoriaRepository.listCategoriasByUsuario(usuario_id);
+  return CategoriaRepository.deleteCategoria(id, usuarioId);
 }
-

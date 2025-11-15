@@ -3,17 +3,17 @@ import fs from "fs/promises";
 import path from "path";
 import { Op } from "sequelize";
 
-async function createArquivoMensal(idUsuario, usuarioNome, arquivoMensal, dataMes) {
+async function createArquivoMensal(usuarioID, usuarioNome, arquivoMensal, dataMes) {
   try {
     // Generate the file first
-    const caminhoArquivo = await generateFile(idUsuario, usuarioNome, dataMes);
+    const caminhoArquivo = await generateFile(usuarioID, usuarioNome, dataMes);
 
     // Then persist the record
     const novoArquivo = await ArquivoMensal.create({
       creationDate: arquivoMensal.creationDate,
       saldo_final: arquivoMensal.saldo_final,
       caminho_arquivo: caminhoArquivo,
-      usuarioIdUsuario: idUsuario, // adjust foreign key to match your model
+      usuariousuarioID: usuarioID, // adjust foreign key to match your model
     });
 
     return novoArquivo;
@@ -24,7 +24,7 @@ async function createArquivoMensal(idUsuario, usuarioNome, arquivoMensal, dataMe
 }
 
 // Generate the monthly file containing the user's transactions
-async function generateFile(idUsuario, usuarioNome, dataMes) {
+async function generateFile(usuarioID, usuarioNome, dataMes) {
   try {
     const mesAtual = dataMes.getMonth();
     const anoAtual = dataMes.getFullYear();
@@ -34,7 +34,7 @@ async function generateFile(idUsuario, usuarioNome, dataMes) {
     // Fetch all transactions of that user for that period
     const movimentacoes = await Movimentacao.findAll({
       where: {
-        usuarioIdUsuario: idUsuario,
+        usuariousuarioID: usuarioID,
         data_movimentacao: {
           [Op.between]: [dataInicio, dataFim],
         },
@@ -44,7 +44,7 @@ async function generateFile(idUsuario, usuarioNome, dataMes) {
     });
 
     // Build directory path
-    const dir = path.join("user_files", `${idUsuario}_${usuarioNome}`);
+    const dir = path.join("user_files", `${usuarioID}_${usuarioNome}`);
     await fs.mkdir(dir, { recursive: true });
 
     // File name: e.g., "2025-10.txt"

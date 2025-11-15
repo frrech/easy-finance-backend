@@ -1,41 +1,43 @@
 import { Categoria } from "../models/model.js";
 
-async function createCategoria(data) {
+export async function createCategoria({ nome, tipo, usuarioId }) {
   return await Categoria.create({
-    nome: data.nome,
-    tipo: data.tipo,
+    nome,
+    tipo,
+    usuarioId
   });
 }
 
-async function listAllCategorias() {
-  return await Categoria.findAll();
+export async function listCategoriasByUsuario(usuarioId) {
+  return await Categoria.findAll({
+    where: { usuarioId },
+    order: [["createdAt", "DESC"]],
+  });
 }
 
-async function listCategoriaById(id) {
-  return await Categoria.findByPk(id);
+export async function listCategoriaById(id, usuarioId) {
+  return await Categoria.findOne({
+    where: {
+      idCategoria: id,
+      usuarioId,
+    },
+  });
 }
 
-export async function listCategoriasByUsuario(usuario_id) {
-  return await Categoria.findAll({ where: { usuario_id } });
-}
-
-async function updateCategoria(id, data) {
+export async function updateCategoria(id, usuarioId, data) {
   return await Categoria.update(
-    { nome: data.nome, tipo: data.tipo },
-    { where: { id_categoria: id } }
+    {
+      nome: data.nome,
+      tipo: data.tipo,
+    },
+    {
+      where: { idCategoria: id, usuarioId },
+    }
   );
 }
 
-async function deleteCategoria(id) {
+export async function deleteCategoria(id, usuarioId) {
   return await Categoria.destroy({
-    where: { id_categoria: id },
+    where: { idCategoria: id, usuarioId },
   });
 }
-
-export {
-  createCategoria,
-  listAllCategorias,
-  listCategoriaById,
-  updateCategoria,
-  deleteCategoria,
-};

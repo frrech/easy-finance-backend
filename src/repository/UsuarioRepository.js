@@ -16,7 +16,7 @@ export async function createUsuario(usuario) {
  */
 export async function listUsuarioByID(id) {
   return await Usuario.findOne({
-    where: { id_usuario: id }
+    where: { usuario_id: id }
   });
 }
 
@@ -33,8 +33,8 @@ export async function findByEmail(email) {
   return await Usuario.findOne({ where: { email } });
 }
 
-export async function findById(idUsuario) {
-  return await Usuario.findByPk(idUsuario);
+export async function findById(usuarioID) {
+  return await Usuario.findByPk(usuarioID);
 }
 
 /**
@@ -48,7 +48,7 @@ export async function updateUsuario(id, usuario) {
       senha: usuario.senha
     },
     {
-      where: { id_usuario: id }
+      where: { usuario_id: id }
     }
   );
 
@@ -56,7 +56,7 @@ export async function updateUsuario(id, usuario) {
     return null; // no user found
   }
 
-  return await Usuario.findOne({ where: { id_usuario: id } });
+  return await Usuario.findOne({ where: { usuario_id: id } });
 }
 
 /**
@@ -64,7 +64,7 @@ export async function updateUsuario(id, usuario) {
  */
 export async function deleteUsuario(id) {
   const deletedRows = await Usuario.destroy({
-    where: { id_usuario: id }
+    where: { usuario_id: id }
   });
   return deletedRows > 0;
 }

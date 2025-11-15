@@ -16,8 +16,8 @@ function validateArquivoMensal(arq) {
 /**
  * Create Arquivo Mensal — wrapper for repository logic
  */
-async function createArquivoMensal(id_usuario, usuario_nome, arquivo_mensal, data_mes) {
-  if (!id_usuario || !usuario_nome || !arquivo_mensal || !data_mes) {
+async function createArquivoMensal(usuario_id, usuario_nome, arquivo_mensal, data_mes) {
+  if (!usuario_id || !usuario_nome || !arquivo_mensal || !data_mes) {
     throw { status: 400, message: "Missing required fields" };
   }
 
@@ -26,7 +26,7 @@ async function createArquivoMensal(id_usuario, usuario_nome, arquivo_mensal, dat
   }
 
   const created = await ArquivoMensalRepository.createArquivoMensal(
-    id_usuario,
+    usuario_id,
     usuario_nome,
     arquivo_mensal,
     data_mes

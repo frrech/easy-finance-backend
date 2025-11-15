@@ -79,7 +79,7 @@ router.post('/', UsuarioController.createUsuario);
  *             schema:
  *               type: object
  *               properties:
- *                 idUsuario:
+ *                 usuarioID:
  *                   type: integer
  *                   example: 1
  *                 nome:

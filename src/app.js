@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -31,4 +34,8 @@ app.use('/api/arquivo', ArquivoMensalRouter);
 
 app.use(errorHandler);
 
+// ✔ DEFAULT EXPORT (required for Jest)
+export default app;
+
+// ✔ OPTIONAL named exports (still available if needed)
 export { app, sequelize, setupDatabase };

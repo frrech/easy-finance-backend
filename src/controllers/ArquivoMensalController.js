@@ -4,7 +4,7 @@ import * as ArquivoMensalService from "../services/ArquivoMensalService.js";
  * Create a new monthly file and persist its record.
  * Expected body format:
  * {
- *   "id_usuario": 1,
+ *   "usuario_id": 1,
  *   "usuario_nome": "Bernardo",
  *   "arquivo_mensal": {
  *      "creationDate": "2025-11-01T00:00:00Z",
@@ -15,17 +15,17 @@ import * as ArquivoMensalService from "../services/ArquivoMensalService.js";
  */
 async function createArquivoMensal(req, res) {
   try {
-    const { id_usuario, usuario_nome, arquivo_mensal, data_mes } = req.body;
+    const { usuario_id, usuario_nome, arquivo_mensal, data_mes } = req.body;
 
-    if (!id_usuario || !usuario_nome || !arquivo_mensal || !data_mes) {
+    if (!usuario_id || !usuario_nome || !arquivo_mensal || !data_mes) {
       return res.status(400).json({
         message:
-          "Missing required fields: id_usuario, usuario_nome, arquivo_mensal, data_mes",
+          "Missing required fields: usuario_id, usuario_nome, arquivo_mensal, data_mes",
       });
     }
 
     const newArquivo = await ArquivoMensalService.createArquivoMensal(
-      id_usuario,
+      usuario_id,
       usuario_nome,
       arquivo_mensal,
       new Date(data_mes)

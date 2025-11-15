@@ -1,4 +1,56 @@
+# --- Node ---
 node_modules/
-# Environment variables
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+
+# --- Environment Files ---
 .env
-user_files/
+.env.*
+!.env.example   # allow an example if you add one later
+
+# --- Logs ---
+logs/
+*.log
+*.log.*
+debug.log
+
+# --- Coverage ---
+coverage/
+.nyc_output/
+
+# --- Jest ---
+.jest/
+jest-cache/
+jest-temp/
+*.tsbuildinfo
+
+# --- Build & Output ---
+dist/
+build/
+.tmp/
+.temp/
+
+# --- OS / Editor junk ---
+.DS_Store
+Thumbs.db
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# --- MySQL Dumps or Local DB Files ---
+*.sql
+*.dump
+
+# --- Temporary Files ---
+*.swp
+*.swo
+*.orig
+
+# --- Project-Specific ---
+# Ignore runtime uploads, exports, etc if you add them later:
+uploads/
+exported/
+temp/

@@ -9,11 +9,11 @@ import { logger } from './utils/logger.js';
     logger.info("✅ Connected to MySQL.");
 
     // Drop and recreate all tables (for dev only)
-    // logger.warn("⚠️  Forcing database sync (all tables will be dropped and recreated)...");
-    // await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
-    // await sequelize.sync({ force: true });
-    // await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
-    // logger.info("✅ Database synced successfully!");
+    logger.warn("⚠️  Forcing database sync (all tables will be dropped and recreated)...");
+    await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
+    await sequelize.sync({ force: true });
+    await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
+    logger.info("✅ Database synced successfully!");
 
     // Global error fallback (optional, but okay here)
     app.use((err, req, res, next) => {

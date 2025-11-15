@@ -4,11 +4,11 @@ import sequelize from "../config/db.js";
 
 // === Usuario ===
 const Usuario = sequelize.define("Usuario", {
-  idUsuario: {
+  usuarioID: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
     primaryKey: true,
-    field: "id_usuario"
+    field: "usuario_id"
   },
   nome: {
     type: DataTypes.STRING,
@@ -69,7 +69,10 @@ const Categoria = sequelize.define("Categoria", {
     type: DataTypes.INTEGER,
     allowNull: false,
     field: "usuario_id",
-    references: { model: "usuarios", key: "id_usuario" }
+    references: {
+      model: "usuarios",
+      key: "usuario_id"
+    }
   }
 }, {
   tableName: "categorias",
@@ -114,7 +117,7 @@ const ArquivoMensal = sequelize.define("ArquivoMensal", {
     type: DataTypes.INTEGER,
     allowNull: false,
     field: "usuario_id",
-    references: { model: "usuarios", key: "id_usuario" }
+    references: { model: "usuarios", key: "usuario_id" }
   }
 }, {
   tableName: "arquivos_mensais",
@@ -151,7 +154,7 @@ const Movimentacao = sequelize.define("Movimentacao", {
   usuarioId: {
     type: DataTypes.INTEGER,
     field: "usuario_id",
-    references: { model: "usuarios", key: "id_usuario" }
+    references: { model: "usuarios", key: "usuario_id" }
   },
   arquivoMensalId: {
     type: DataTypes.INTEGER,

@@ -15,36 +15,23 @@ import { Usuario } from "../models/model.js";
 //   }
 // }
 
-export async function createUsuario(req, res, next) {
+export async function createUsuario(req, res) {
   try {
     console.log("📩 Incoming body:", req.body);
 
-    const { nome, email, senha } = req.body;
-    if (!nome || !email || senha === undefined || senha === null) {
-      console.log("⚠️ Missing required fields");
-      return res.status(400).json({ message: "Campos vazios ou inválidos!" });
-    }
+    const usuario = await Usuario.create(req.body);
 
-    const senhaString = String(senha).trim();
-    if (senhaString.length === 0) {
-      console.log("⚠️ Empty password");
-      return res.status(400).json({ message: "Senha inválida!" });
-    }
+    console.log("✅ User created:", usuario);
 
-    const novoUsuario = await UsuarioRepository.createUsuario({
-      nome: nome.trim(),
-      email: email.trim().toLowerCase(),
-      senha: senhaString, // plain string, will be hashed by hook
-    });
+    // REMOVE SENHA BEFORE SENDING BACK
+    const { senha, ...safeUser } = usuario.toJSON();
 
-    console.log("✅ User created:", novoUsuario);
-    return res.status(201).json(novoUsuario);
+    return res.status(201).json(safeUser);
+
   } catch (err) {
-    console.error("❌ Error in createUsuario:", err);
-    next(err);
+    return res.status(500).json({ message: "Erro ao criar usuário" });
   }
 }
-
 
 
 export async function listUsuarioByID(req, res) {
@@ -74,7 +61,7 @@ export async function listUsuarioByID(req, res) {
 //     }
 
 //     const token = jwt.sign(
-//       { idUsuario: user.idUsuario, email: user.email },
+//       { usuarioID: user.usuarioID, email: user.email },
 //       process.env.JWT_SECRET,
 //       { expiresIn: process.env.JWT_EXPIRATION || "1h" }
 //     );
@@ -83,7 +70,7 @@ export async function listUsuarioByID(req, res) {
 //       message: "Login bem-sucedido!",
 //       token,
 //       usuario: {
-//         idUsuario: user.idUsuario,
+//         usuarioID: user.usuarioID,
 //         nome: user.nome,
 //         email: user.email,
 //       },
@@ -115,7 +102,7 @@ export async function loginUsuario(req, res) {
     }
 
     const token = jwt.sign(
-      { idUsuario: usuario.idUsuario, email: usuario.email },
+      { usuarioID: usuario.usuarioID, email: usuario.email },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -124,7 +111,7 @@ export async function loginUsuario(req, res) {
       message: "Login bem-sucedido!",
       token,
       usuario: {
-        idUsuario: usuario.idUsuario,
+        usuarioID: usuario.usuarioID,
         nome: usuario.nome,
         email: usuario.email,
       },
@@ -139,15 +126,15 @@ export async function getCurrentUsuario(req, res) {
   try {
     console.log("📥 getCurrentUsuario called. req.user:", req.user);
 
-    const { idUsuario } = req.user;
-    const usuario = await UsuarioRepository.findById(idUsuario);
+    const { usuarioID } = req.user;
+    const usuario = await UsuarioRepository.findById(usuarioID);
 
     if (!usuario) {
       return res.status(404).json({ message: "Usuário não encontrado" });
     }
 
     res.status(200).json({
-      idUsuario: usuario.idUsuario,
+      usuarioID: usuario.usuarioID,
       nome: usuario.nome,
       email: usuario.email,
       createdAt: usuario.createdAt,
@@ -161,37 +148,29 @@ export async function getCurrentUsuario(req, res) {
 
 export async function updateUsuario(req, res) {
   try {
-    const { id } = req.params;
-    const { nome, email, senha } = req.body;
+    const id = parseInt(req.params.id, 10);
 
-    const usuario = await Usuario.findByPk(id);
-    if (!usuario) {
+    const [affected] = await Usuario.update(req.body, {
+      where: { usuarioID: id }
+    });
+
+    if (affected === 0) {
       return res.status(404).json({ message: "Usuário não encontrado" });
     }
 
-    // Update basic fields
-    if (nome) usuario.nome = nome;
-    if (email) usuario.email = email;
+    const updatedUser = await Usuario.findByPk(id);
 
-    // If password was provided, update it (hooks will hash automatically)
-    if (senha) usuario.senha = senha;
+    // Remove password before sending
+    const { senha, ...safeUser } = updatedUser.toJSON();
 
-    await usuario.save(); // ✅ triggers beforeUpdate hook automatically
+    return res.status(200).json(safeUser);
 
-    res.status(200).json({
-      message: "Usuário atualizado com sucesso",
-      usuario: {
-        idUsuario: usuario.idUsuario,
-        nome: usuario.nome,
-        email: usuario.email,
-        updatedAt: usuario.updatedAt,
-      },
-    });
-  } catch (err) {
-    console.error("❌ Erro ao atualizar usuário:", err);
-    res.status(500).json({ message: "Erro interno ao atualizar usuário" });
+  } catch (error) {
+    console.error("Erro ao atualizar usuário:", error);
+    return res.status(500).json({ message: "Erro ao atualizar usuário" });
   }
 }
+
 
 export async function deleteUsuario(req, res) {
   try {

@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "test": "cross-env NODE_ENV=test ENV_FILE=.env.test DOTENV_CONFIG_SILENT=true node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand"
   },
   "type": "module",
   "keywords": [],
@@ -26,6 +27,9 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "cross-env": "^10.1.0",
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.10",
+    "supertest": "^7.1.4"
   }
 }

@@ -7,7 +7,7 @@ export async function createMovimentacao(payload) {
     data_movimentacao: payload.data_movimentacao,
     transaction_type: payload.transaction_type,
     id_categoria: payload.id_categoria,
-    id_usuario: payload.id_usuario,
+    usuario_id: payload.usuario_id,
   });
 }
 
@@ -20,7 +20,7 @@ export async function listMovimentacaoByID(id) {
 }
 
 export async function listMovimentacoesByUsuario(usuario_id) {
-  return await Movimentacao.findAll({ where: { id_usuario: usuario_id } });
+  return await Movimentacao.findAll({ where: { usuario_id: usuario_id } });
 }
 
 export async function listMovimentacoesByCategoria(categoria_id) {

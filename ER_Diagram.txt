@@ -1,7 +1,7 @@
 ┌─────────────────────┐          1 ────────∞          ┌────────────────────┐
 │      Usuario        │───────────────────────────────│     Categoria      │
 │─────────────────────│                               │────────────────────│
-│ id_usuario (PK)     │                               │ id_categoria (PK)  │
+│ usuario_id (PK)     │                               │ id_categoria (PK)  │
 │ nome                │                               │ nome               │
 │ email (unique)      │                               │ tipo (entrada/saida)│
 │ senha (hashed)      │                               │ usuario_id (FK)    │
