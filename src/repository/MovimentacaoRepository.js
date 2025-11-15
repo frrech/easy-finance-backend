@@ -1,13 +1,15 @@
+// repository/MovimentacaoRepository.js
 import { Movimentacao } from "../models/model.js";
 
 export async function createMovimentacao(payload) {
   return await Movimentacao.create({
     descricao: payload.descricao,
     valor: payload.valor,
-    data_movimentacao: payload.data_movimentacao,
-    transaction_type: payload.transaction_type,
-    id_categoria: payload.id_categoria,
-    usuario_id: payload.usuario_id,
+    dataMovimentacao: payload.dataMovimentacao,
+    tipo: payload.tipo, // "entrada" | "saida"
+    categoriaId: payload.categoriaId,
+    usuarioId: payload.usuarioId,
+    arquivoMensalId: payload.arquivoMensalId ?? null,
   });
 }
 
@@ -19,32 +21,31 @@ export async function listMovimentacaoByID(id) {
   return await Movimentacao.findByPk(id);
 }
 
-export async function listMovimentacoesByUsuario(usuario_id) {
-  return await Movimentacao.findAll({ where: { usuario_id: usuario_id } });
+export async function listMovimentacoesByUsuario(usuarioId) {
+  return await Movimentacao.findAll({ where: { usuarioId } });
 }
 
-export async function listMovimentacoesByCategoria(categoria_id) {
-  return await Movimentacao.findAll({ where: { id_categoria: categoria_id } });
+export async function listMovimentacoesByCategoria(categoriaId) {
+  return await Movimentacao.findAll({ where: { categoriaId } });
 }
 
 export async function updateMovimentacao(id, payload) {
-  const [updatedCount] = await Movimentacao.update(
+  const [count] = await Movimentacao.update(
     {
       descricao: payload.descricao,
       valor: payload.valor,
-      data_movimentacao: payload.data_movimentacao,
-      transaction_type: payload.transaction_type,
-      id_categoria: payload.id_categoria,
+      dataMovimentacao: payload.dataMovimentacao,
+      tipo: payload.tipo,
+      categoriaId: payload.categoriaId,
+      arquivoMensalId: payload.arquivoMensalId ?? null,
     },
-    { where: { id_movimentacao: id } }
+    { where: { idMovimentacao: id } }
   );
 
-  if (updatedCount === 0) return null;
-  return await Movimentacao.findByPk(id);
+  if (count === 0) return null;
+  return Movimentacao.findByPk(id);
 }
 
 export async function deleteMovimentacao(id) {
-  return await Movimentacao.destroy({
-    where: { id_movimentacao: id },
-  });
+  return await Movimentacao.destroy({ where: { idMovimentacao: id } });
 }

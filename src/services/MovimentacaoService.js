@@ -1,27 +1,29 @@
+// services/MovimentacaoService.js
 import * as MovimentacaoRepository from "../repository/MovimentacaoRepository.js";
 
-function validateMovimentacao(movimentacao) {
+function validateMovimentacao(m) {
   return (
-    movimentacao &&
-    typeof movimentacao.descricao === "string" &&
-    movimentacao.descricao.trim() !== "" &&
-    typeof movimentacao.valor === "number" &&
-    isFinite(movimentacao.valor) &&
-    typeof movimentacao.transaction_type === "string" &&
-    ["receita", "despesa"].includes(movimentacao.transaction_type.toLowerCase()) &&
-    movimentacao.data_movimentacao
+    m &&
+    typeof m.descricao === "string" &&
+    m.descricao.trim() !== "" &&
+    typeof m.valor === "number" &&
+    isFinite(m.valor) &&
+    ["entrada", "saida"].includes(m.tipo) &&
+    m.dataMovimentacao &&
+    m.categoriaId &&
+    m.usuarioId
   );
 }
 
-export async function createMovimentacao(movimentacao) {
-  if (!validateMovimentacao(movimentacao)) {
-    throw { status: 400, message: "Campos vazios ou inválidos!" };
+export async function createMovimentacao(mov) {
+  if (!validateMovimentacao(mov)) {
+    throw { status: 400, message: "Campos inválidos na movimentação" };
   }
-  return await MovimentacaoRepository.createMovimentacao(movimentacao);
+  return await MovimentacaoRepository.createMovimentacao(mov);
 }
 
 export async function listMovimentacaoByID(id) {
-  if (typeof id !== "number" || id <= 0) {
+  if (!id || id <= 0) {
     throw { status: 400, message: "ID inválido!" };
   }
 
@@ -33,12 +35,12 @@ export async function listMovimentacaoByID(id) {
   return mov;
 }
 
-export async function listMovimentacoesByUsuario(usuario_id) {
-  if (!usuario_id || typeof usuario_id !== "number") {
-    throw { status: 400, message: "ID de usuário inválido!" };
+export async function listMovimentacoesByUsuario(usuarioId) {
+  if (!usuarioId || typeof usuarioId !== "number") {
+    throw { status: 400, message: "Usuário inválido!" };
   }
 
-  const movs = await MovimentacaoRepository.listMovimentacoesByUsuario(usuario_id);
+  const movs = await MovimentacaoRepository.listMovimentacoesByUsuario(usuarioId);
   if (!movs || movs.length === 0) {
     throw { status: 404, message: "Nenhuma movimentação encontrada para este usuário." };
   }
@@ -46,15 +48,15 @@ export async function listMovimentacoesByUsuario(usuario_id) {
   return movs;
 }
 
-export async function updateMovimentacao(id, movimentacao) {
+export async function updateMovimentacao(id, mov) {
   if (!id || id <= 0) {
     throw { status: 400, message: "ID inválido!" };
   }
-  if (!validateMovimentacao(movimentacao)) {
-    throw { status: 400, message: "Campos de movimentação preenchidos incorretamente" };
+  if (!validateMovimentacao(mov)) {
+    throw { status: 400, message: "Campos inválidos na movimentação" };
   }
 
-  const updated = await MovimentacaoRepository.updateMovimentacao(id, movimentacao);
+  const updated = await MovimentacaoRepository.updateMovimentacao(id, mov);
   if (!updated) {
     throw { status: 404, message: "Movimentação não encontrada!" };
   }
@@ -67,10 +69,10 @@ export async function deleteMovimentacao(id) {
     throw { status: 400, message: "ID inválido!" };
   }
 
-  const deletedCount = await MovimentacaoRepository.deleteMovimentacao(id);
-  if (!deletedCount) {
+  const deleted = await MovimentacaoRepository.deleteMovimentacao(id);
+  if (!deleted) {
     throw { status: 404, message: "Movimentação não encontrada!" };
   }
 
-  return { message: "Movimentação excluída com sucesso." };
+  return { message: "Movimentação removida com sucesso." };
 }
