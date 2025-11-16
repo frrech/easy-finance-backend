@@ -1,86 +1,123 @@
 import bcrypt from "bcrypt";
 import * as UsuarioRepository from "../repository/UsuarioRepository.js";
+import {
+  UsuarioCreateDTO,
+  UsuarioLoginDTO,
+  UsuarioResponseDTO
+} from "../dtos/UsuarioDTO.js";
 
-/**
- * Validate user input (more permissive for senha)
- */
-function validateUsuario(usuario) {
-  if (!usuario) return false;
+// Local-only update type (does NOT need to exist in DTO folder)
+type UsuarioUpdateFields = {
+  nome?: string;
+  email?: string;
+  senha?: string;
+};
 
-  const nomeValido = typeof usuario.nome === "string" && usuario.nome.trim() !== "";
-  const emailValido = typeof usuario.email === "string" && usuario.email.trim() !== "";
-
-  const senhaValida =
-    (typeof usuario.senha === "string" && usuario.senha.trim() !== "") ||
-    (typeof usuario.senha === "number" && usuario.senha.toString().trim() !== "");
-
-  return nomeValido && emailValido && senhaValida;
+function validateUsuarioInput(data: UsuarioCreateDTO) {
+  return (
+    data &&
+    typeof data.nome === "string" &&
+    data.nome.trim() !== "" &&
+    typeof data.email === "string" &&
+    data.email.trim() !== "" &&
+    typeof data.senha === "string" &&
+    data.senha.trim() !== ""
+  );
 }
 
-/**
- * Create user
- */
-export async function createUsuario(usuario) {
-  if (!validateUsuario(usuario)) {
-    throw { status: 400, message: "Campos vazios ou inválidos!" };
+function validateUpdateInput(data: UsuarioUpdateFields) {
+  return (
+    (!data.nome || typeof data.nome === "string") &&
+    (!data.email || typeof data.email === "string") &&
+    (!data.senha || typeof data.senha === "string")
+  );
+}
+
+export async function createUsuario(
+  data: UsuarioCreateDTO
+): Promise<UsuarioResponseDTO> {
+
+  if (!validateUsuarioInput(data)) {
+    throw { status: 400, message: "Campos inválidos" };
   }
 
-  // Normalize
-  usuario.nome = usuario.nome.trim();
-  usuario.email = usuario.email.trim().toLowerCase();
-  usuario.senha = String(usuario.senha).trim();
+  const normalized = {
+    nome: data.nome.trim(),
+    email: data.email.trim().toLowerCase(),
+    senha: data.senha.trim()
+  };
 
-  // ✅ Let model hooks handle hashing
-  return await UsuarioRepository.createUsuario(usuario);
+  const created = await UsuarioRepository.createUsuario(normalized);
+
+  return {
+    usuarioID: created.usuarioID,
+    nome: created.nome,
+    email: created.email
+  };
 }
 
-/**
- * Get user by ID
- */
-export async function listUsuarioByID(id) {
-  if (!id || id < 0) throw { status: 400, message: "ID inválido" };
+export async function loginUsuario(
+  credentials: UsuarioLoginDTO
+): Promise<UsuarioResponseDTO> {
 
-  const user = await UsuarioRepository.listUsuarioByID(id);
-  if (!user) throw { status: 404, message: "Usuário não encontrado" };
+  const usuario = await UsuarioRepository.findUsuarioByEmail(
+    credentials.email.toLowerCase()
+  );
 
-  return user;
-}
-
-/**
- * Update user
- */
-export async function updateUsuario(id, usuario) {
-  if (!id || id < 0) throw { status: 400, message: "ID inválido" };
-  if (!validateUsuario(usuario)) throw { status: 400, message: "Campos de usuário inválidos" };
-
-  usuario.nome = usuario.nome.trim();
-  usuario.email = usuario.email.trim().toLowerCase();
-  usuario.senha = String(usuario.senha).trim();
-
-  return await UsuarioRepository.updateUsuario(id, usuario);
-}
-
-/**
- * Delete user
- */
-export async function deleteUsuario(id) {
-  if (!id || id < 0) throw { status: 400, message: "ID inválido" };
-  const usuario = await UsuarioRepository.deleteUsuario(id);
   if (!usuario) throw { status: 404, message: "Usuário não encontrado" };
-  return usuario;
+
+  const senhaOk = await usuario.correctPassword(String(credentials.senha));
+  if (!senhaOk) throw { status: 401, message: "Senha incorreta" };
+
+  return {
+    usuarioID: usuario.usuarioID,
+    nome: usuario.nome,
+    email: usuario.email
+  };
 }
 
-/**
- * Login user (verify password)
- */
-export async function loginUsuario(email, senha) {
-  if (!email || !senha) throw { status: 400, message: "Email e senha obrigatórios!" };
+export async function listUsuarioByID(id: number) {
+  const usuario = await UsuarioRepository.findById(id);
+  if (!usuario) {
+    throw { status: 404, message: "Usuário não encontrado" };
+  }
 
-  const usuario = await UsuarioRepository.findUsuarioByEmail(email.toLowerCase());
-  if (!usuario) throw { status: 404, message: "Usuário não encontrado!" };
+  return {
+    usuarioID: usuario.usuarioID,
+    nome: usuario.nome,
+    email: usuario.email
+  };
+}
 
-  const senhaCorreta = await usuario.correctPassword(String(senha));
-  if (!senhaCorreta) throw { status: 401, message: "Senha incorreta!" };
+export async function updateUsuario(id: number, data: UsuarioUpdateFields) {
+  if (!validateUpdateInput(data)) {
+    throw { status: 400, message: "Campos inválidos" };
+  }
 
-  return usuario;
+  const usuario = await UsuarioRepository.findById(id);
+  if (!usuario) {
+    throw { status: 404, message: "Usuário não encontrado" };
+  }
+
+  const payload: UsuarioUpdateFields = {};
+
+  if (data.nome) payload.nome = data.nome.trim();
+  if (data.email) payload.email = data.email.trim().toLowerCase();
+  if (data.senha) payload.senha = data.senha.trim();
+
+  const updated = await UsuarioRepository.updateUsuario(id, payload);
+
+  return {
+    usuarioID: updated.usuarioID,
+    nome: updated.nome,
+    email: updated.email
+  };
+}
+
+export async function deleteUsuario(id: number) {
+  const usuario = await UsuarioRepository.findById(id);
+  if (!usuario) {
+    throw { status: 404, message: "Usuário não encontrado" };
+  }
+  return UsuarioRepository.deleteUsuario(id);
 }

@@ -1,13 +1,19 @@
-import { Categoria } from "../models/model.js";
+// src/controllers/CategoriaController.ts
+import { Request, Response } from "express";
 import * as CategoriaService from "../services/CategoriaService.js";
+import { Categoria } from "../models/model.js";
 
-export async function createCategoria(req, res) {
+export async function createCategoria(req: Request, res: Response) {
   try {
     const { nome, tipo } = req.body;
 
-    const normalized = tipo?.toUpperCase();
+    if (!nome || !tipo) {
+      return res.status(400).json({ message: "Nome e tipo são obrigatórios." });
+    }
 
+    const normalized = tipo.toUpperCase();
     const validTypes = ["ENTRADA", "SAIDA"];
+
     if (!validTypes.includes(normalized)) {
       return res.status(400).json({
         message: "Tipo inválido. Use ENTRADA ou SAIDA."
@@ -16,32 +22,39 @@ export async function createCategoria(req, res) {
 
     const categoria = await Categoria.create({
       nome,
-      tipo: tipo.toLowerCase(),
-      usuarioId: req.user.usuarioID   // ✔ correct FK
+      tipo: normalized.toLowerCase(), // save lowercase
+      usuarioId: req.user.usuarioID
     });
 
-    res.status(201).json(categoria);
-  } catch (error) {
-    console.error("Erro ao criar categoria:", error);
-    res.status(500).json({ message: "Erro interno ao criar categoria" });
+    // ✔ Force FK to be visible in response
+    return res.status(201).json({
+      idCategoria: categoria.idCategoria,
+      nome: categoria.nome,
+      tipo: categoria.tipo,
+      usuarioId: req.user.usuarioID
+    });
+
+  } catch (err: any) {
+    console.error("Erro ao criar categoria:", err);
+    return res.status(500).json({
+      message: err.message || "Erro interno ao criar categoria"
+    });
   }
 }
 
-
-
-export async function listCategorias(req, res) {
+export async function listCategorias(req: Request, res: Response) {
   try {
     const usuarioId = req.user.usuarioID;
     const categorias = await CategoriaService.listCategorias(usuarioId);
     return res.status(200).json(categorias);
-  } catch (err) {
+  } catch (err: any) {
     return res.status(err.status || 500).json({
-      message: err.message || "Erro ao listar categorias",
+      message: err.message || "Erro ao listar categorias"
     });
   }
 }
 
-export async function listCategoriaById(req, res) {
+export async function listCategoriaById(req: Request, res: Response) {
   try {
     const usuarioId = req.user.usuarioID;
     const id = Number(req.params.id);
@@ -52,39 +65,40 @@ export async function listCategoriaById(req, res) {
       return res.status(404).json({ message: "Categoria não encontrada" });
 
     return res.status(200).json(categoria);
-  } catch (err) {
+
+  } catch (err: any) {
     return res.status(err.status || 500).json({
-      message: err.message || "Erro ao buscar categoria",
+      message: err.message || "Erro ao buscar categoria"
     });
   }
 }
 
-export async function updateCategoria(req, res) {
+export async function updateCategoria(req: Request, res: Response) {
   try {
     const usuarioId = req.user.usuarioID;
     const id = Number(req.params.id);
 
     const updated = await CategoriaService.updateCategoria(id, usuarioId, req.body);
-
     return res.status(200).json(updated);
-  } catch (err) {
+
+  } catch (err: any) {
     return res.status(err.status || 500).json({
-      message: err.message || "Erro ao atualizar categoria",
+      message: err.message || "Erro ao atualizar categoria"
     });
   }
 }
 
-export async function deleteCategoria(req, res) {
+export async function deleteCategoria(req: Request, res: Response) {
   try {
     const usuarioId = req.user.usuarioID;
     const id = Number(req.params.id);
 
     await CategoriaService.deleteCategoria(id, usuarioId);
-
     return res.status(204).send();
-  } catch (err) {
+
+  } catch (err: any) {
     return res.status(err.status || 500).json({
-      message: err.message || "Erro ao excluir categoria",
+      message: err.message || "Erro ao excluir categoria"
     });
   }
 }

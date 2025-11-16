@@ -1,5 +1,5 @@
-// services/MovimentacaoService.js
 import * as MovimentacaoRepository from "../repository/MovimentacaoRepository.js";
+import { Categoria } from "../models/model.js";
 
 function validateMovimentacao(m) {
   return (
@@ -9,9 +9,9 @@ function validateMovimentacao(m) {
     typeof m.valor === "number" &&
     isFinite(m.valor) &&
     ["entrada", "saida"].includes(m.tipo) &&
-    m.dataMovimentacao &&
-    m.categoriaId &&
-    m.usuarioId
+    m.dataMovimentacao &&                 // OK
+    Number.isInteger(m.categoriaId) &&
+    Number.isInteger(m.usuarioId)
   );
 }
 
@@ -19,7 +19,20 @@ export async function createMovimentacao(mov) {
   if (!validateMovimentacao(mov)) {
     throw { status: 400, message: "Campos inválidos na movimentação" };
   }
-  return await MovimentacaoRepository.createMovimentacao(mov);
+
+  // Category must belong to user
+  const categoria = await Categoria.findOne({
+    where: {
+      idCategoria: mov.categoriaId,
+      usuarioId: mov.usuarioId,
+    },
+  });
+
+  if (!categoria) {
+    throw { status: 403, message: "Categoria não pertence ao usuário." };
+  }
+
+  return MovimentacaoRepository.createMovimentacao(mov);
 }
 
 export async function listMovimentacaoByID(id) {
@@ -28,6 +41,7 @@ export async function listMovimentacaoByID(id) {
   }
 
   const mov = await MovimentacaoRepository.listMovimentacaoByID(id);
+
   if (!mov) {
     throw { status: 404, message: "Movimentação não encontrada!" };
   }
@@ -40,23 +54,31 @@ export async function listMovimentacoesByUsuario(usuarioId) {
     throw { status: 400, message: "Usuário inválido!" };
   }
 
-  const movs = await MovimentacaoRepository.listMovimentacoesByUsuario(usuarioId);
-  if (!movs || movs.length === 0) {
-    throw { status: 404, message: "Nenhuma movimentação encontrada para este usuário." };
-  }
-
-  return movs;
+  return (await MovimentacaoRepository.listMovimentacoesByUsuario(usuarioId)) || [];
 }
 
 export async function updateMovimentacao(id, mov) {
   if (!id || id <= 0) {
     throw { status: 400, message: "ID inválido!" };
   }
+
   if (!validateMovimentacao(mov)) {
     throw { status: 400, message: "Campos inválidos na movimentação" };
   }
 
+  const categoria = await Categoria.findOne({
+    where: {
+      idCategoria: mov.categoriaId,
+      usuarioId: mov.usuarioId,
+    },
+  });
+
+  if (!categoria) {
+    throw { status: 403, message: "Categoria não pertence ao usuário." };
+  }
+
   const updated = await MovimentacaoRepository.updateMovimentacao(id, mov);
+
   if (!updated) {
     throw { status: 404, message: "Movimentação não encontrada!" };
   }
@@ -64,12 +86,13 @@ export async function updateMovimentacao(id, mov) {
   return updated;
 }
 
-export async function deleteMovimentacao(id) {
+export async function deleteMovimentacao(id, usuarioId) {
   if (!id || id <= 0) {
     throw { status: 400, message: "ID inválido!" };
   }
 
-  const deleted = await MovimentacaoRepository.deleteMovimentacao(id);
+  const deleted = await MovimentacaoRepository.deleteMovimentacao(id, usuarioId);
+
   if (!deleted) {
     throw { status: 404, message: "Movimentação não encontrada!" };
   }

@@ -9,13 +9,13 @@ import { logger } from "./utils/logger.js";
     await sequelize.authenticate();
     logger.info("✅ Connected to MySQL.");
 
-    if (process.env.NODE_ENV !== "production") {
-      logger.warn("⚠️  Forcing database sync (all tables dropped!)");
-      await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
-      await sequelize.sync({ force: true });
-      await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
-      logger.info("✅ Database synced successfully!");
-    }
+    // if (process.env.NODE_ENV !== "production") {
+    //   logger.warn("⚠️  Forcing database sync (all tables dropped!)");
+    //   await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
+    //   await sequelize.sync({ force: true });
+    //   await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
+    //   logger.info("✅ Database synced successfully!");
+    // }
 
     // GLOBAL ERROR HANDLER (Express 5)
     app.use(
