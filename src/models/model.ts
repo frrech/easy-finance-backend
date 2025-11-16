@@ -8,7 +8,7 @@ import {
 } from "sequelize";
 
 import bcrypt from "bcryptjs";
-import sequelize from "../config/db";
+import sequelize from "../config/db.js";
 
 // -----------------------------------------
 //                USUARIO

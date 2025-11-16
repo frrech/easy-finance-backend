@@ -1,4 +1,4 @@
-import { Usuario } from "../models/model";
+import { Usuario } from "../models/model.js";
 
 // ---------------------------
 // Types

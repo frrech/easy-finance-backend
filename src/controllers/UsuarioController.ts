@@ -2,9 +2,9 @@ import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-import { Usuario } from "../models/model";
-import * as UsuarioRepository from "../repository/UsuarioRepository";
-import * as UsuarioService from "../services/UsuarioService";
+import { Usuario } from "../models/model.js";
+import * as UsuarioRepository from "../repository/UsuarioRepository.js";
+import * as UsuarioService from "../services/UsuarioService.js";
 
 // ------------------------------
 // Types

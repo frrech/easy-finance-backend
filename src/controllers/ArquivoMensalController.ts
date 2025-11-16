@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import * as ArquivoMensalService from "../services/ArquivoMensalService";
-import { ArquivoMensal } from "../models/model";
+import * as ArquivoMensalService from "../services/ArquivoMensalService.js";
+import { ArquivoMensal } from "../models/model.js";
 
 // ------------------------------
 // CREATE

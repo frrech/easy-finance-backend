@@ -1,9 +1,10 @@
+import { describe, test, expect } from "vitest";
 import { api, randomEmail } from "./setup.js";
 import {
   createAndLoginUser,
   authGet,
   authPut,
-  authDelete
+  authDelete,
 } from "./utils/testClient.js";
 
 describe("User API", () => {
@@ -11,12 +12,12 @@ describe("User API", () => {
     const response = await api.post("/api/usuario").send({
       nome: "João Teste",
       email: randomEmail(),
-      senha: "123456"
+      senha: "123456",
     });
 
     expect(response.status).toBe(201);
     expect(response.body.usuarioID).toBeTruthy();
-    expect(response.body.senha).toBeUndefined(); // Should not return password
+    expect(response.body.senha).toBeUndefined();
   });
 
   test("should login a user and return JWT", async () => {
@@ -53,7 +54,7 @@ describe("User API", () => {
     const { user, token } = await createAndLoginUser();
 
     const res = await authPut(token, `/api/usuario/${user.usuarioID}`, {
-      nome: "Updated User"
+      nome: "Updated User",
     });
 
     expect(res.status).toBe(200);
@@ -68,14 +69,13 @@ describe("User API", () => {
     expect(res.status).toBe(204);
   });
 
-  // Error cases
   test("should NOT login with wrong password", async () => {
     const email = randomEmail();
     await api.post("/api/usuario").send({ nome: "X", email, senha: "123456" });
 
     const login = await api.post("/api/usuario/login").send({
       email,
-      senha: "wrong-password"
+      senha: "wrong-password",
     });
 
     expect(login.status).toBe(401);
@@ -83,7 +83,6 @@ describe("User API", () => {
 
   test("should block /me without token", async () => {
     const res = await api.get("/api/usuario/me");
-
     expect(res.status).toBe(401);
   });
 });

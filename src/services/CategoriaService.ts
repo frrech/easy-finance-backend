@@ -1,5 +1,5 @@
-import * as CategoriaRepository from "../repository/CategoriaRepository";
-import { AppError } from "../types/AppError";
+import * as CategoriaRepository from "../repository/CategoriaRepository.js";
+import { AppError } from "../types/AppError.js";
 
 export async function createCategoria(data: any, usuarioId: number) {
   if (!data.nome || !data.tipo) {

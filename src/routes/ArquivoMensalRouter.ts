@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as ArquivoMensalController from "../controllers/ArquivoMensalController";
+import * as ArquivoMensalController from "../controllers/ArquivoMensalController.js";
 
 const router = Router();
 

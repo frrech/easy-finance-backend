@@ -6,7 +6,9 @@
     "dev": "ts-node-dev --respawn --transpile-only --ignore-watch node_modules --no-notify src/server.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
-    "test": "cross-env NODE_ENV=test ENV_FILE=.env.test node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand"
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:ui": "vitest --ui"
   },
   "type": "module",
   "keywords": [],
@@ -33,11 +35,15 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.10.1",
     "@types/sequelize": "^4.28.20",
+    "@types/supertest": "^6.0.3",
     "cross-env": "^10.1.0",
+    "happy-dom": "^20.0.10",
     "jest": "^30.2.0",
     "nodemon": "^3.1.10",
     "supertest": "^7.1.4",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.9"
   }
 }

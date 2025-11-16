@@ -1,4 +1,4 @@
-import { ArquivoMensal, ArquivoMensalAttributes, Movimentacao } from "../models/model";
+import { ArquivoMensal, ArquivoMensalAttributes, Movimentacao } from "../models/model.js";
 import fs from "fs/promises";
 import path from "path";
 import { Op } from "sequelize";

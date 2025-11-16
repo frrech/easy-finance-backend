@@ -1,28 +1,31 @@
-import { jest } from '@jest/globals';
-import app from "../src/app.js";
 import request from "supertest";
+import { app } from "../src/app.js";
+import { afterAll, vi } from "vitest";
 import sequelize from "../src/config/db.js";
 
+// Export API instance just like before
 export const api = request(app);
 
 export function randomEmail() {
   return `user_${Math.floor(Math.random() * 999999)}@test.com`;
 }
 
-// Silence console logs to keep test output clean
+// Silence console logs
 global.console = {
   ...console,
-  log: jest.fn(),
-  info: jest.fn(),
-  debug: jest.fn(),
-  warn: jest.fn(),
+  log: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn(),
+  warn: vi.fn(),
 };
 
-jest.setTimeout(20000);
+// Timeout equivalent to jest.setTimeout()
+vi.setConfig({ testTimeout: 20000 });
 
+// Close DB after all tests
 afterAll(async () => {
   try {
-    await sequelize.connectionManager.close();
+    await sequelize.close();
   } catch (err) {
     console.error("Error closing Sequelize:", err);
   }

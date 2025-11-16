@@ -1,10 +1,11 @@
+import { describe, test, expect } from "vitest";
 import { api } from "./setup.js";
 import {
   createAndLoginUser,
   authGet,
   authPost,
   authPut,
-  authDelete
+  authDelete,
 } from "./utils/testClient.js";
 
 describe("Category API", () => {
@@ -13,7 +14,7 @@ describe("Category API", () => {
 
     const res = await authPost(token, "/api/categoria", {
       nome: "Alimentação",
-      tipo: "saida"
+      tipo: "saida",
     });
 
     expect(res.status).toBe(201);
@@ -26,23 +27,32 @@ describe("Category API", () => {
   test("should list categories for the authenticated user", async () => {
     const { token } = await createAndLoginUser();
 
-    // Create two categories
     await authPost(token, "/api/categoria", {
       nome: "Salário",
-      tipo: "entrada"
+      tipo: "entrada",
     });
 
     await authPost(token, "/api/categoria", {
       nome: "Transporte",
-      tipo: "saida"
+      tipo: "saida",
     });
 
     const res = await authGet(token, "/api/categoria");
 
     expect(res.status).toBe(200);
-    expect(res.body.length).toBe(2);
 
-    const names = res.body.map(c => c.nome);
+    interface Categoria {
+      idCategoria: number;
+      nome: string;
+      tipo: string;
+      usuarioId: number;
+    }
+
+    const categorias = res.body as Categoria[];
+
+    expect(categorias.length).toBe(2);
+
+    const names = categorias.map((c) => c.nome);
     expect(names).toContain("Salário");
     expect(names).toContain("Transporte");
   });
@@ -52,7 +62,7 @@ describe("Category API", () => {
 
     const created = await authPost(token, "/api/categoria", {
       nome: "Internet",
-      tipo: "saida"
+      tipo: "saida",
     });
 
     const id = created.body.idCategoria;
@@ -69,14 +79,14 @@ describe("Category API", () => {
 
     const created = await authPost(token, "/api/categoria", {
       nome: "Mercado",
-      tipo: "saida"
+      tipo: "saida",
     });
 
     const id = created.body.idCategoria;
 
     const res = await authPut(token, `/api/categoria/${id}`, {
       nome: "Supermercado",
-      tipo: "saida"
+      tipo: "saida",
     });
 
     expect(res.status).toBe(200);
@@ -88,7 +98,7 @@ describe("Category API", () => {
 
     const created = await authPost(token, "/api/categoria", {
       nome: "Academia",
-      tipo: "saida"
+      tipo: "saida",
     });
 
     const id = created.body.idCategoria;
@@ -104,24 +114,22 @@ describe("Category API", () => {
     const user1 = await createAndLoginUser();
     const user2 = await createAndLoginUser();
 
-    // User 1 creates a category
     const created = await authPost(user1.token, "/api/categoria", {
       nome: "Privado",
-      tipo: "saida"
+      tipo: "saida",
     });
 
     const id = created.body.idCategoria;
 
-    // User 2 tries to access it
     const res = await authGet(user2.token, `/api/categoria/${id}`);
 
-    expect(res.status).toBe(404); // not found = correct behavior
+    expect(res.status).toBe(404);
   });
 
   test("should reject creation without token", async () => {
     const res = await api.post("/api/categoria").send({
       nome: "Teste",
-      tipo: "saida"
+      tipo: "saida",
     });
 
     expect(res.status).toBe(401);
@@ -132,9 +140,9 @@ describe("Category API", () => {
 
     const res = await authPost(token, "/api/categoria", {
       nome: "Erro",
-      tipo: "INVALIDO"
+      tipo: "INVALIDO",
     });
 
-    expect(res.status).toBe(400); // your service must validate this
+    expect(res.status).toBe(400);
   });
 });

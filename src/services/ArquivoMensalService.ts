@@ -1,4 +1,4 @@
-import * as ArquivoMensalRepository from "../repository/ArquivoMensalRepository";
+import * as ArquivoMensalRepository from "../repository/ArquivoMensalRepository.js";
 
 interface ArquivoMensalDTO {
   creationDate: string | Date;
