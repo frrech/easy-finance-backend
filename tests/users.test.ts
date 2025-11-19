@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { api, randomEmail } from "./setup.js";
+import { api, randomEmail } from "./testSetup.js";
 import {
   createAndLoginUser,
   authGet,

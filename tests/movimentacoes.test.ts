@@ -1,5 +1,5 @@
 import { describe, test, beforeAll, expect } from "vitest";
-import { api, randomEmail } from "./setup.js";
+import { api, randomEmail } from "./testSetup.js";
 
 let token: string;
 let usuarioId: number;

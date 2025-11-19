@@ -1,4 +1,4 @@
-import { Usuario } from "../models/model.js";
+import { Usuario } from "../models/Usuario.js";
 
 // ---------------------------
 // Types
@@ -25,7 +25,7 @@ export async function createUsuario(usuario: UsuarioDTO) {
 // ---------------------------
 export async function listUsuarioByID(id: number) {
   return Usuario.findOne({
-    where: { usuarioID: id },
+    where: { id: id },
   });
 }
 
@@ -55,13 +55,13 @@ export async function updateUsuario(id: number, usuario: Partial<UsuarioDTO>) {
       senha: usuario.senha,
     },
     {
-      where: { usuarioID: id },
+      where: { id: id },
     }
   );
 
   if (updatedRows === 0) return null;
 
-  return Usuario.findOne({ where: { usuarioID: id } });
+  return Usuario.findOne({ where: { id: id } });
 }
 
 // ---------------------------
@@ -69,7 +69,7 @@ export async function updateUsuario(id: number, usuario: Partial<UsuarioDTO>) {
 // ---------------------------
 export async function deleteUsuario(id: number) {
   const deletedRows = await Usuario.destroy({
-    where: { usuarioID: id },
+    where: { id: id },
   });
 
   return deletedRows > 0;

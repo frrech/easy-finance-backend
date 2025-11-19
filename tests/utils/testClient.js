@@ -1,4 +1,4 @@
-import { api } from "../setup.js";
+import { api } from "../testSetup.js";
 
 export async function createAndLoginUser(userData = {}) {
   const defaultUser = {

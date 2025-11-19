@@ -50,7 +50,7 @@ export async function createUsuario(
   const created = await UsuarioRepository.createUsuario(normalized);
 
   return {
-    usuarioID: created.usuarioID,
+    id: created.id,
     nome: created.nome,
     email: created.email
   };
@@ -70,7 +70,7 @@ export async function loginUsuario(
   if (!senhaOk) throw { status: 401, message: "Senha incorreta" };
 
   return {
-    usuarioID: usuario.usuarioID,
+    id: usuario.id,
     nome: usuario.nome,
     email: usuario.email
   };
@@ -83,7 +83,7 @@ export async function listUsuarioByID(id: number) {
   }
 
   return {
-    usuarioID: usuario.usuarioID,
+    id: usuario.id,
     nome: usuario.nome,
     email: usuario.email
   };
@@ -108,7 +108,7 @@ export async function updateUsuario(id: number, data: UsuarioUpdateFields) {
   const updated = await UsuarioRepository.updateUsuario(id, payload);
 
   return {
-    usuarioID: updated.usuarioID,
+    id: updated.id,
     nome: updated.nome,
     email: updated.email
   };

@@ -1,4 +1,5 @@
-import { ArquivoMensal, ArquivoMensalAttributes, Movimentacao } from "../models/model.js";
+import { ArquivoMensal } from "../models/ArquivoMensal.js";
+import { Movimentacao } from "../models/Movimentacao.js";
 import fs from "fs/promises";
 import path from "path";
 import { Op } from "sequelize";
@@ -87,7 +88,7 @@ export async function updateArquivoMensal(
         saldoFinal: data.saldoFinal,
         caminhoArquivo: data.caminhoArquivo,
       },
-      { where: { idArquivoMensal: id } }
+      { where: { id: id } }
     );
 
     return updated;
@@ -103,5 +104,5 @@ export async function listArquivoByID(id: number) {
 }
 
 export async function deleteArquivo(id: number) {
-  return await ArquivoMensal.destroy({ where: { idArquivoMensal: id } });
+  return await ArquivoMensal.destroy({ where: { id: id } });
 }

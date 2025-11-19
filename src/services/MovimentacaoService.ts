@@ -1,101 +1,74 @@
-import * as MovimentacaoRepository from "../repository/MovimentacaoRepository.js";
-import { Categoria } from "../models/model.js";
+// src/services/MovimentacaoService.ts
+import * as MovRepo from "../repository/MovimentacaoRepository.js";
+import * as CatRepo from "../repository/CategoriaRepository.js";
+import { AppError } from "../types/AppError.js";
 
-function validateMovimentacao(m) {
-  return (
-    m &&
-    typeof m.descricao === "string" &&
-    m.descricao.trim() !== "" &&
-    typeof m.valor === "number" &&
-    isFinite(m.valor) &&
-    ["entrada", "saida"].includes(m.tipo) &&
-    m.dataMovimentacao &&                 // OK
-    Number.isInteger(m.categoriaId) &&
-    Number.isInteger(m.usuarioId)
-  );
+function normalizeTipo(raw) {
+  if (typeof raw !== "string") throw new AppError("Tipo inválido", 400);
+  const t = raw.trim().toLowerCase();
+  if (t !== "entrada" && t !== "saida") {
+    throw new AppError("Tipo deve ser 'entrada' ou 'saida'", 400);
+  }
+  return t;
 }
 
-export async function createMovimentacao(mov) {
-  if (!validateMovimentacao(mov)) {
-    throw { status: 400, message: "Campos inválidos na movimentação" };
+function validateData(data) {
+  if (!data.descricao || typeof data.descricao !== "string") {
+    throw new AppError("Descrição obrigatória", 400);
   }
 
-  // Category must belong to user
-  const categoria = await Categoria.findOne({
-    where: {
-      idCategoria: mov.categoriaId,
-      usuarioId: mov.usuarioId,
-    },
+  if (data.valor === undefined || isNaN(Number(data.valor))) {
+    throw new AppError("Valor inválido", 400);
+  }
+
+  if (!data.dataMovimentacao) {
+    throw new AppError("Data da movimentação obrigatória", 400);
+  }
+
+  if (!data.categoriaId) {
+    throw new AppError("Categoria obrigatória", 400);
+  }
+}
+
+export async function createMovimentacao(data, usuarioId) {
+  validateData(data);
+  const tipo = normalizeTipo(data.tipo);
+
+  // verify categoria belongs to the user
+  const categoria = await CatRepo.findCategoriaById(data.categoriaId, usuarioId);
+  if (!categoria) throw new AppError("Categoria não encontrada", 404);
+
+  return await MovRepo.createMovimentacao({
+    ...data,
+    tipo,
+    usuarioId,
   });
-
-  if (!categoria) {
-    throw { status: 403, message: "Categoria não pertence ao usuário." };
-  }
-
-  return MovimentacaoRepository.createMovimentacao(mov);
 }
 
-export async function listMovimentacaoByID(id) {
-  if (!id || id <= 0) {
-    throw { status: 400, message: "ID inválido!" };
-  }
-
-  const mov = await MovimentacaoRepository.listMovimentacaoByID(id);
-
-  if (!mov) {
-    throw { status: 404, message: "Movimentação não encontrada!" };
-  }
-
+export async function getMovimentacaoById(id, usuarioId) {
+  const mov = await MovRepo.getMovimentacaoById(id, usuarioId);
+  if (!mov) throw new AppError("Movimentação não encontrada", 404);
   return mov;
 }
 
 export async function listMovimentacoesByUsuario(usuarioId) {
-  if (!usuarioId || typeof usuarioId !== "number") {
-    throw { status: 400, message: "Usuário inválido!" };
-  }
-
-  return (await MovimentacaoRepository.listMovimentacoesByUsuario(usuarioId)) || [];
+  return MovRepo.listMovimentacoesByUsuario(usuarioId);
 }
 
-export async function updateMovimentacao(id, mov) {
-  if (!id || id <= 0) {
-    throw { status: 400, message: "ID inválido!" };
+export async function updateMovimentacao(id, usuarioId, data) {
+  if (data.tipo !== undefined) data.tipo = normalizeTipo(data.tipo);
+
+  if (data.categoriaId !== undefined) {
+    const categoria = await CatRepo.findCategoriaById(data.categoriaId, usuarioId);
+    if (!categoria) throw new AppError("Categoria inválida", 400);
   }
 
-  if (!validateMovimentacao(mov)) {
-    throw { status: 400, message: "Campos inválidos na movimentação" };
-  }
-
-  const categoria = await Categoria.findOne({
-    where: {
-      idCategoria: mov.categoriaId,
-      usuarioId: mov.usuarioId,
-    },
-  });
-
-  if (!categoria) {
-    throw { status: 403, message: "Categoria não pertence ao usuário." };
-  }
-
-  const updated = await MovimentacaoRepository.updateMovimentacao(id, mov);
-
-  if (!updated) {
-    throw { status: 404, message: "Movimentação não encontrada!" };
-  }
-
+  const updated = await MovRepo.updateMovimentacao(id, usuarioId, data);
+  if (!updated) throw new AppError("Movimentação não encontrada", 404);
   return updated;
 }
 
 export async function deleteMovimentacao(id, usuarioId) {
-  if (!id || id <= 0) {
-    throw { status: 400, message: "ID inválido!" };
-  }
-
-  const deleted = await MovimentacaoRepository.deleteMovimentacao(id, usuarioId);
-
-  if (!deleted) {
-    throw { status: 404, message: "Movimentação não encontrada!" };
-  }
-
-  return { message: "Movimentação removida com sucesso." };
+  const deleted = await MovRepo.deleteMovimentacao(id, usuarioId);
+  if (!deleted) throw new AppError("Movimentação não encontrada", 404);
 }

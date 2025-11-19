@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import * as jwt from "jsonwebtoken";  // namespace import
 import bcrypt from "bcryptjs";
-import { Usuario } from "../models/model.js";
+import { Usuario } from "../models/Usuario.js";
 
 const router = Router();
 
@@ -23,7 +23,7 @@ router.post("/login", async (req: Request, res: Response) => {
     const expiresIn = (process.env.JWT_EXPIRES_IN ?? "1h") as string;
 
     const token = jwt.sign(
-      { usuarioID: usuario.usuarioID, email: usuario.email },
+      { id: usuario.id, email: usuario.email },
       secret,
       { expiresIn } as jwt.SignOptions    // <── THE FIX
     );

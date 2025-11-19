@@ -12,7 +12,7 @@ export interface UsuarioLoginDTO {
 }
 
 export interface UsuarioResponseDTO {
-  usuarioID: number;
+  id: number;
   nome: string;
   email: string;
 }
