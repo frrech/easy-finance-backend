@@ -1,6 +1,7 @@
 // src/repository/MovimentacaoRepository.ts
 import { Movimentacao } from "../models/Movimentacao.js";
 import { Categoria } from "../models/Categoria.js";
+import { Op } from "sequelize";
 
 export async function createMovimentacao(data) {
   const mov = await Movimentacao.create({
@@ -52,7 +53,7 @@ export async function listMovimentacoesByUsuario(usuarioId) {
     include: [
       {
         model: Categoria,
-        as: "categoria",              // <-- REQUIRED
+        as: "categoria", // <-- REQUIRED
         attributes: ["id", "nome", "tipo"],
       },
     ],
@@ -76,7 +77,6 @@ export async function listMovimentacoesByUsuario(usuarioId) {
   }));
 }
 
-
 export async function updateMovimentacao(id, usuarioId, data) {
   const mov = await Movimentacao.findOne({ where: { id, usuarioId } });
   if (!mov) return null;
@@ -99,4 +99,26 @@ export async function deleteMovimentacao(id, usuarioId) {
   });
 
   return deleted > 0;
+}
+
+export async function findMovimentacaoByDateRange(
+  usuarioId: number,
+  startDate: Date,
+  endDate: Date,
+) {
+  return Movimentacao.findAll({
+    where: {
+      usuarioId,
+      dataMovimentacao: {
+        [Op.between]: [startDate, endDate],
+      },
+    },
+    include: [
+      {
+        model: Categoria,
+        attributes: ["idCategoria", "nome", "tipo"],
+      },
+    ],
+    order: [["dataMovimentacao", "DESC"]],
+  });
 }

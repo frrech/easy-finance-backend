@@ -35,7 +35,10 @@ export async function createMovimentacao(data, usuarioId) {
   const tipo = normalizeTipo(data.tipo);
 
   // verify categoria belongs to the user
-  const categoria = await CatRepo.findCategoriaById(data.categoriaId, usuarioId);
+  const categoria = await CatRepo.findCategoriaById(
+    data.categoriaId,
+    usuarioId,
+  );
   if (!categoria) throw new AppError("Categoria não encontrada", 404);
 
   return await MovRepo.createMovimentacao({
@@ -59,7 +62,10 @@ export async function updateMovimentacao(id, usuarioId, data) {
   if (data.tipo !== undefined) data.tipo = normalizeTipo(data.tipo);
 
   if (data.categoriaId !== undefined) {
-    const categoria = await CatRepo.findCategoriaById(data.categoriaId, usuarioId);
+    const categoria = await CatRepo.findCategoriaById(
+      data.categoriaId,
+      usuarioId,
+    );
     if (!categoria) throw new AppError("Categoria inválida", 400);
   }
 
