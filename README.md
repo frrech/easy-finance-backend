@@ -51,6 +51,9 @@ JWT_EXPIRATION=1h
 # App
 PORT=3000
 NODE_ENV=development
+
+# Gemini API
+GEMINI_API_KEY=sua_chave_api_gemini
 ```
 
 E para testes, existe também:
