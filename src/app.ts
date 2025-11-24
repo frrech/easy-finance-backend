@@ -5,6 +5,10 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 
+import swaggerUi from "swagger-ui-express";
+import { readFileSync } from "fs";
+import path from "path";
+
 import UsuarioRouter from "./routes/UsuarioRouter.js";
 import CategoriaRouter from "./routes/CategoriaRouter.js";
 import MovimentacaoRouter from "./routes/MovimentacaoRouter.js";
@@ -17,6 +21,9 @@ import { initModels } from "./models/index.js";
 
 const app = express();
 
+const swaggerPath = path.join(process.cwd(), "dist/swagger.json");
+const swaggerDocument = JSON.parse(readFileSync(swaggerPath, "utf8"));
+
 app.use(express.json());
 app.use(cors());
 app.use(helmet());
@@ -28,6 +35,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/api/auth", AuthRouter);
 app.use("/api/usuario", UsuarioRouter);
 app.use("/api/categoria", CategoriaRouter);

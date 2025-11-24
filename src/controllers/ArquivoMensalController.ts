@@ -1,111 +1,112 @@
+// src/controllers/ArquivoMensalController.ts
 import { Request, Response } from "express";
-import * as ArquivoMensalService from "../services/ArquivoMensalService.js";
-import { ArquivoMensal } from "../models/ArquivoMensal.js";
+import * as ArquivoService from "../services/ArquivoMensalService.js";
+import * as ArquivoMensalGeminiService from "../services/ArquivoMensalGeminiService.js";
+import { generatePdfBuffer } from "../utils/arquivoMensalPdf.js";
+import { relatorioToCSV } from "../utils/arquivoMensalCsv.js";
 
-// ------------------------------
-// CREATE
-// ------------------------------
-export async function createArquivoMensal(req: Request, res: Response) {
+export async function gerarArquivoMensal(req: Request, res: Response) {
   try {
-    const { usuario_id, usuario_nome, arquivo_mensal, data_mes } = req.body;
+    const usuarioId = req.user.id;
+    const ano = Number(req.query.ano);
+    const mes = Number(req.query.mes);
 
-    if (!usuario_id || !usuario_nome || !arquivo_mensal || !data_mes) {
-      return res.status(400).json({
-        message:
-          "Missing required fields: usuario_id, usuario_nome, arquivo_mensal, data_mes",
-      });
+    if (!ano || !mes) {
+      return res.status(400).json({ message: "Ano e mês são obrigatórios" });
     }
 
-    const newArquivo = await ArquivoMensalService.createArquivoMensal(
-      Number(usuario_id),
-      usuario_nome,
-      arquivo_mensal,
-      new Date(data_mes)
-    );
-
-    return res.status(201).json(newArquivo);
+    const created = await ArquivoService.gerarEArmazenar(usuarioId, ano, mes);
+    return res.status(201).json(created);
   } catch (err: any) {
-    console.error("❌ Error creating Arquivo Mensal:", err);
-    return res
-      .status(err?.status || 500)
-      .json({ message: err?.message || "Internal Server Error" });
+    console.error(err);
+    return res.status(500).json({ message: err.message || "Erro interno" });
   }
 }
 
-// ------------------------------
-// GET BY ID
-// ------------------------------
-export async function listArquivoByID(req: Request, res: Response) {
+export async function getArquivoMensal(req: Request, res: Response) {
   try {
-    const id = Number(req.params.id);
-    const arquivo = await ArquivoMensalService.listArquivoByID(id);
+    const usuarioId = req.user.id;
+    const ano = Number(req.params.ano);
+    const mes = Number(req.params.mes);
 
-    return res.status(200).json(arquivo);
+    const result = await ArquivoService.getRelatorio(usuarioId, ano, mes);
+    if (!result) return res.status(404).json({ message: "Relatório não encontrado" });
+
+    return res.status(200).json(result.relatorio);
   } catch (err: any) {
-    return res
-      .status(err?.status || 500)
-      .json({ message: err?.message || "Internal Server Error" });
+    console.error(err);
+    return res.status(500).json({ message: err.message || "Erro interno" });
   }
 }
 
-// ------------------------------
-// LIST BY USER
-// ------------------------------
-export async function listArquivosByUsuario(req: Request, res: Response) {
+export async function getAnaliseMensal(req: Request, res: Response) {
   try {
-    const usuarioId = Number(req.params.usuario_id);
+    const usuarioId = req.user.id;
+    const arquivoId = Number(req.params.id);
 
-    if (isNaN(usuarioId)) {
-      return res.status(400).json({ message: "Invalid usuario_id" });
+    if (isNaN(arquivoId)) {
+      return res.status(400).json({ message: "ID inválido" });
     }
 
-    const arquivos = await ArquivoMensal.findAll({
-      where: { usuarioId },
-    });
-
-    if (!arquivos || arquivos.length === 0) {
-      return res.status(404).json({ message: "No files found for this user." });
-    }
-
-    return res.status(200).json(arquivos);
-  } catch (err) {
-    console.error("❌ Error fetching user files:", err);
+    const result = await ArquivoMensalGeminiService.getAnaliseMensal(arquivoId, usuarioId);
+    return res.status(200).json(result);
+  } catch (err: any) {
+    console.error(err);
     return res
-      .status(500)
-      .json({ message: "Server error fetching user files." });
+      .status(err.status || 500)
+      .json({ message: err.message || "Erro interno" });
   }
 }
 
-// ------------------------------
-// UPDATE
-// ------------------------------
-export async function updateArquivoMensal(req: Request, res: Response) {
+export async function listarArquivos(req: Request, res: Response) {
   try {
-    const id = Number(req.params.id);
+    const usuarioId = req.user.id;
 
-    const updated = await ArquivoMensalService.updateArquivoMensal(id, req.body);
+    const list = await ArquivoService.listarArquivos(usuarioId);
 
-    return res.status(200).json(updated);
+    return res.status(200).json(list);
   } catch (err: any) {
-    return res
-      .status(err?.status || 500)
-      .json({ message: err?.message || "Internal Server Error" });
+    console.error(err);
+    return res.status(500).json({ message: err.message || "Erro interno" });
   }
 }
 
-// ------------------------------
-// DELETE
-// ------------------------------
-export async function deleteArquivo(req: Request, res: Response) {
+export async function downloadCsv(req: Request, res: Response) {
   try {
-    const id = Number(req.params.id);
+    const usuarioId = req.user.id;
+    const ano = Number(req.params.ano);
+    const mes = Number(req.params.mes);
 
-    await ArquivoMensalService.deleteArquivo(id);
+    const r = await ArquivoService.getRelatorio(usuarioId, ano, mes);
+    if (!r) return res.status(404).json({ message: "Relatório não encontrado" });
 
-    return res.status(204).send();
+    const csv = relatorioToCSV(r.relatorio);
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename=arquivo_mensal_${ano}_${mes}.csv`);
+    res.send(csv);
   } catch (err: any) {
-    return res
-      .status(err?.status || 500)
-      .json({ message: err?.message || "Internal Server Error" });
+    console.error(err);
+    return res.status(500).json({ message: err.message || "Erro interno" });
+  }
+}
+
+export async function downloadPdf(req: Request, res: Response) {
+  try {
+    const usuarioId = req.user.id;
+    const ano = Number(req.params.ano);
+    const mes = Number(req.params.mes);
+
+    const r = await ArquivoService.getRelatorio(usuarioId, ano, mes);
+    if (!r) return res.status(404).json({ message: "Relatório não encontrado" });
+
+    // generate PDF buffer using helper utility
+    const buffer = await generatePdfBuffer(r.relatorio);
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename=arquivo_mensal_${ano}_${mes}.pdf`);
+    res.send(buffer);
+  } catch (err: any) {
+    console.error(err);
+    return res.status(500).json({ message: err.message || "Erro interno" });
   }
 }

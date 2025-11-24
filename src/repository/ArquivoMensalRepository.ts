@@ -1,108 +1,79 @@
+// src/repository/ArquivoMensalRepository.ts
 import { ArquivoMensal } from "../models/ArquivoMensal.js";
-import { Movimentacao } from "../models/Movimentacao.js";
-import fs from "fs/promises";
-import path from "path";
-import { Op } from "sequelize";
 
-export async function createArquivoMensal(
-  usuarioId: number,
-  usuarioNome: string,
-  arquivoMensal: { creationDate: string | Date; saldoFinal: number },
-  dataMes: Date
-) {
-  const caminhoArquivo = await generateFile(usuarioId, usuarioNome, dataMes);
-
+export async function createArquivoMensal(payload: {
+  usuarioId: number;
+  ano: number;
+  mes: number;
+  conteudo: string;
+  saldoAcumulado?: number | null;
+}) {
   return ArquivoMensal.create({
-    creationDate: new Date(arquivoMensal.creationDate),
-    saldoFinal: arquivoMensal.saldoFinal,
-    caminhoArquivo,
-    usuarioId,
-    mes: dataMes.getMonth() + 1,
-    ano: dataMes.getFullYear(),
+    usuarioId: payload.usuarioId,
+    ano: payload.ano,
+    mes: payload.mes,
+    conteudo: payload.conteudo,
+    saldoAcumulado: payload.saldoAcumulado ?? null,
   });
 }
 
-interface ArquivoMensalUpdateDTO {
-  creationDate?: string | Date;
-  saldoFinal?: number;
-  caminhoArquivo?: string | null;
+/** Get report by ID */
+export async function getById(id: number) {
+  return ArquivoMensal.findByPk(id);
 }
 
-async function generateFile(
+/** Get a report for a specific user/month */
+export async function findByUsuarioAnoMes(
   usuarioId: number,
-  usuarioNome: string,
-  dataMes: Date
+  ano: number,
+  mes: number
 ) {
-  try {
-    const mes = dataMes.getMonth();
-    const ano = dataMes.getFullYear();
-
-    const dataInicio = new Date(ano, mes, 1);
-    const dataFim = new Date(ano, mes + 1, 0, 23, 59, 59);
-
-    const movimentacoes = await Movimentacao.findAll({
-      where: {
-        usuarioId,
-        dataMovimentacao: {
-          [Op.between]: [dataInicio, dataFim],
-        },
-      },
-      order: [["dataMovimentacao", "ASC"]],
-      raw: true,
-    });
-
-    const dir = path.join("user_files", `${usuarioId}_${usuarioNome}`);
-    await fs.mkdir(dir, { recursive: true });
-
-    const fileName = `${ano}-${String(mes + 1).padStart(2, "0")}.txt`;
-    const filePath = path.join(dir, fileName);
-
-    const content = movimentacoes
-      .map((m) => {
-        return `${m.dataMovimentacao} | ${m.tipo} | ${m.descricao || ""} | R$ ${
-          m.valor
-        }`;
-      })
-      .join("\n");
-
-    await fs.writeFile(filePath, content, "utf-8");
-
-    console.log("📄 Arquivo mensal criado:", filePath);
-    return filePath;
-  } catch (err) {
-    console.error("❌ Error generating monthly file:", err);
-    throw err;
-  }
+  return ArquivoMensal.findOne({
+    where: { usuarioId, ano, mes },
+  });
 }
 
+/** Get a report by ano/mes regardless of user (rarely used) */
+export async function getByAnoMes(ano: number, mes: number) {
+  return ArquivoMensal.findOne({
+    where: { ano, mes },
+  });
+}
+
+/** List all reports from a user */
+export async function listByUsuario(usuarioId: number) {
+  return ArquivoMensal.findAll({
+    where: { usuarioId },
+    order: [
+      ["ano", "DESC"],
+      ["mes", "DESC"],
+    ],
+  });
+}
+
+
+/** Update a report */
 export async function updateArquivoMensal(
   id: number,
-  data: ArquivoMensalUpdateDTO
+  data: Partial<{
+    conteudo: string;
+    saldoAcumulado: number | null;
+  }>
 ) {
-  try {
-    const [updated] = await ArquivoMensal.update(
-      {
-        creationDate: data.creationDate
-          ? new Date(data.creationDate)
-          : undefined,
-        saldoFinal: data.saldoFinal,
-        caminhoArquivo: data.caminhoArquivo,
-      },
-      { where: { id: id } }
-    );
+  const [updated] = await ArquivoMensal.update(data, {
+    where: { id },
+  });
 
-    return updated;
-  } catch (err) {
-    console.error("❌ Error updating Arquivo Mensal:", err);
-    throw err;
-  }
+  if (updated === 0) return null;
+
+  return ArquivoMensal.findByPk(id);
 }
 
-
-export async function listArquivoByID(id: number) {
-  return await ArquivoMensal.findByPk(id);
-}
-
+/** Delete a report */
 export async function deleteArquivo(id: number) {
-  return await ArquivoMensal.destroy({ where: { id: id } });
+  const deleted = await ArquivoMensal.destroy({
+    where: { id },
+  });
+
+  return deleted > 0;
 }

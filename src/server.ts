@@ -14,6 +14,11 @@ import { initModels } from "./models/index.js";
 
     await sequelize.authenticate();
     initModels(sequelize);
+    
+    if (process.env.DB_SYNC_FORCE === "true") {
+      console.warn("⚠️ Running sequelize.sync({ force: true }) — ALL TABLES WILL BE DROPPED!");
+      await sequelize.sync({ force: true });
+    }
 
     const port = process.env.PORT || 3000;
 

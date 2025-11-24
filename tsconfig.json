@@ -11,11 +11,12 @@
     "strict": false,
     "skipLibCheck": true,
     "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     "noImplicitAny": false,
     "types": ["node"],
     "typeRoots": ["./src/types", "./node_modules/@types"],
     
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "scripts"],
   "exclude": ["node_modules", "dist", "tests"]
 }

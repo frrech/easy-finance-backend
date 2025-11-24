@@ -1,0 +1,226 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Easy Finance API",
+    "version": "1.0.0",
+    "description": "API documentation for the Easy Finance personal finance platform."
+  },
+
+  "servers": [
+    {
+      "url": "http://localhost:3000/api"
+    }
+  ],
+
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+
+    "schemas": {
+      "Categoria": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "nome": { "type": "string" },
+          "tipo": { "type": "string", "enum": ["entrada", "saida"] },
+          "usuarioId": { "type": "number" }
+        }
+      },
+
+      "Movimentacao": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "descricao": { "type": "string" },
+          "tipo": { "type": "string", "enum": ["entrada", "saida"] },
+          "valor": { "type": "number" },
+          "categoriaId": { "type": "number" },
+          "dataMovimentacao": { "type": "string", "format": "date-time" },
+          "usuarioId": { "type": "number" }
+        }
+      },
+
+      "ArquivoMensal": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "usuarioId": { "type": "number" },
+          "ano": { "type": "number" },
+          "mes": { "type": "number" },
+          "conteudo": { "type": "string" },
+          "saldoAcumulado": { "type": "number" }
+        }
+      }
+    }
+  },
+
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "summary": "Usuário login",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "senha": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Logged in" },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+
+    "/categoria": {
+      "get": {
+        "summary": "Listar categorias",
+        "tags": ["Categorias"],
+        "responses": {
+          "200": {
+            "description": "Lista de categorias",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Categoria" } }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Criar categoria",
+        "tags": ["Categorias"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Categoria" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Categoria criada" }
+        }
+      }
+    },
+
+    "/movimentacao": {
+      "get": {
+        "summary": "Listar movimentações",
+        "tags": ["Movimentações"],
+        "responses": {
+          "200": {
+            "description": "Lista de movimentações",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Movimentacao" } }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Criar movimentação",
+        "tags": ["Movimentações"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Movimentacao" }
+            }
+          }
+        },
+        "responses": { "201": { "description": "Movimentação criada" } }
+      }
+    },
+
+    "/arquivo/gerar": {
+      "post": {
+        "summary": "Gerar e armazenar relatório mensal",
+        "tags": ["Arquivo Mensal"],
+        "parameters": [
+          { "name": "ano", "in": "query", "required": true, "schema": { "type": "number" } },
+          { "name": "mes", "in": "query", "required": true, "schema": { "type": "number" } }
+        ],
+        "responses": {
+          "201": { "description": "Relatório gerado" }
+        }
+      }
+    },
+
+    "/arquivo/{ano}/{mes}": {
+      "get": {
+        "summary": "Obter relatório mensal em JSON",
+        "tags": ["Arquivo Mensal"],
+        "parameters": [
+          { "name": "ano", "in": "path", "required": true, "schema": { "type": "number" } },
+          { "name": "mes", "in": "path", "required": true, "schema": { "type": "number" } }
+        ],
+        "responses": {
+          "200": { "description": "Relatório JSON" },
+          "404": { "description": "Não encontrado" }
+        }
+      }
+    },
+
+    "/arquivo/{ano}/{mes}/csv": {
+      "get": {
+        "summary": "Baixar relatório mensal em CSV",
+        "tags": ["Arquivo Mensal"],
+        "parameters": [
+          { "name": "ano", "in": "path", "required": true, "schema": { "type": "number" } },
+          { "name": "mes", "in": "path", "required": true, "schema": { "type": "number" } }
+        ],
+        "responses": {
+          "200": { "description": "Arquivo CSV" }
+        }
+      }
+    },
+
+    "/arquivo/{ano}/{mes}/pdf": {
+      "get": {
+        "summary": "Baixar relatório mensal em PDF",
+        "tags": ["Arquivo Mensal"],
+        "parameters": [
+          { "name": "ano", "in": "path", "required": true, "schema": { "type": "number" } },
+          { "name": "mes", "in": "path", "required": true, "schema": { "type": "number" } }
+        ],
+        "responses": {
+          "200": { "description": "PDF gerado" }
+        }
+      }
+    },
+
+    "/arquivo/{arquivoId}/analise": {
+      "get": {
+        "summary": "Gerar análise financeira mensal via Gemini",
+        "tags": ["Arquivo Mensal"],
+        "parameters": [
+          { "name": "arquivoId", "in": "path", "required": true, "schema": { "type": "number" } }
+        ],
+        "responses": {
+          "200": { "description": "Análise gerada" }
+        }
+      }
+    }
+  }
+}

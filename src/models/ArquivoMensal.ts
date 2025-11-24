@@ -1,3 +1,4 @@
+// src/models/ArquivoMensal.ts
 import {
   Sequelize,
   Model,
@@ -12,12 +13,11 @@ export class ArquivoMensal extends Model<
   InferCreationAttributes<ArquivoMensal>
 > {
   declare id: CreationOptional<number>;
-  declare mes: number;
-  declare ano: number;
-  declare saldoFinal: number;
-  declare caminhoArquivo: string | null;
-  declare creationDate: CreationOptional<Date>;
   declare usuarioId: number;
+  declare ano: number;
+  declare mes: number;
+  declare conteudo: string; // JSON stored as TEXT
+  declare saldoAcumulado: number | null;
 
   static initModel(sequelize: Sequelize) {
     ArquivoMensal.init(
@@ -27,25 +27,27 @@ export class ArquivoMensal extends Model<
           autoIncrement: true,
           primaryKey: true,
         },
-        mes: DataTypes.INTEGER,
-        ano: DataTypes.INTEGER,
-        saldoFinal: {
-          type: DataTypes.DECIMAL(10, 2),
-          allowNull: false,
-          field: "saldo_final",
-        },
-        caminhoArquivo: {
-          type: DataTypes.STRING,
-          field: "caminho_arquivo",
-        },
-        creationDate: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "creation_date",
-        },
         usuarioId: {
           type: DataTypes.INTEGER,
+          allowNull: false,
           field: "usuario_id",
+        },
+        ano: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+        },
+        mes: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+        },
+        conteudo: {
+          type: DataTypes.TEXT,
+          allowNull: false,
+        },
+        saldoAcumulado: {
+          type: DataTypes.DECIMAL(12, 2),
+          allowNull: true,
+          field: "saldo_acumulado",
         },
       },
       {

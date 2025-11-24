@@ -1,23 +1,24 @@
+// src/services/GeminiService.ts
+import dotenv from "dotenv";
+dotenv.config();
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { config } from "../config/index.js";
 
-const genAI = new GoogleGenerativeAI(config.api_key);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-class GeminiService {
-  public async generateAnalysis(prompt: string): Promise<string> {
+// Pick one — flash (faster) or pro (higher quality)
+const MODEL_NAME = "models/gemini-2.5-flash";
+// const MODEL_NAME = "models/gemini-2.5-pro";
+
+export const geminiService = {
+  async generateAnalysis(prompt: string) {
+    console.log("DEBUG KEY:", process.env.GEMINI_API_KEY);
     try {
-      const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash-latest",
-      });
+      const model = genAI.getGenerativeModel({ model: MODEL_NAME });
       const result = await model.generateContent(prompt);
-      const response = result.response;
-      const text = response.text();
-      return text;
-    } catch (error) {
-      console.error("Error generating analysis:", error);
+      return result.response.text();
+    } catch (err) {
+      console.error("Error generating analysis:", err);
       throw new Error("Failed to generate analysis from Gemini.");
     }
-  }
-}
-
-export const geminiService = new GeminiService();
+  },
+};
