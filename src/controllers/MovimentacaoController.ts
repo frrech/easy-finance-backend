@@ -20,6 +20,18 @@ export async function createMovimentacao(req, res) {
   }
 }
 
+export async function updateMovimentacao(req, res) {
+  try {
+    const usuarioId = req.user.id;
+    const id = Number(req.params.id);
+
+    const updated = await MovService.updateMovimentacao(id, usuarioId, req.body);
+    return res.status(200).json(updated);
+  } catch (err) {
+    return handleError(err, res);
+  }
+}
+
 export async function getMovimentacao(req, res) {
   try {
     const usuarioId = req.user.id;
@@ -36,17 +48,6 @@ export async function listMovimentacoes(req, res) {
     const usuarioId = req.user.id;
     const list = await MovService.listMovimentacoesByUsuario(usuarioId);
     return res.status(200).json(list);
-  } catch (err) {
-    return handleError(err, res);
-  }
-}
-
-export async function updateMovimentacao(req, res) {
-  try {
-    const usuarioId = req.user.id;
-    const id = Number(req.params.id);
-    const updated = await MovService.updateMovimentacao(id, usuarioId, req.body);
-    return res.status(200).json(updated);
   } catch (err) {
     return handleError(err, res);
   }
