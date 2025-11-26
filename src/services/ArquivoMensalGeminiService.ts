@@ -3,8 +3,10 @@ import * as ArquivoRepo from "../repository/ArquivoMensalRepository.js";
 import { geminiService } from "./GeminiService.js";
 import { gerarRelatorioMensal } from "./ArquivoMensalService.js";
 
-export async function getAnaliseMensal(arquivoId: number, usuarioId: number) {
-  // 1. Load the stored monthly report
+// --------------------------------------------------------
+// 🔧 Internal helper: Load current + previous reports
+// --------------------------------------------------------
+async function loadRelatorios(arquivoId: number, usuarioId: number) {
   const arquivoAtual = await ArquivoRepo.getById(arquivoId);
 
   if (!arquivoAtual || arquivoAtual.usuarioId !== usuarioId) {
@@ -15,7 +17,6 @@ export async function getAnaliseMensal(arquivoId: number, usuarioId: number) {
   const ano = relAtual.ano;
   const mes = relAtual.mes;
 
-  // 2. Load previous month’s report (if exists)
   const prevMes = mes === 1 ? 12 : mes - 1;
   const prevAno = mes === 1 ? ano - 1 : ano;
 
@@ -25,16 +26,32 @@ export async function getAnaliseMensal(arquivoId: number, usuarioId: number) {
     prevMes
   );
 
-  let relAnterior = null;
+  const relAnterior = arquivoAnterior
+    ? JSON.parse(arquivoAnterior.conteudo)
+    : await gerarRelatorioMensal(usuarioId, prevAno, prevMes); // generated on the fly
 
-  if (arquivoAnterior) {
-    relAnterior = JSON.parse(arquivoAnterior.conteudo);
-  } else {
-    // Generate on-the-fly (no DB write)
-    relAnterior = await gerarRelatorioMensal(usuarioId, prevAno, prevMes);
-  }
+  return {
+    arquivoAtual,
+    relAtual,
+    relAnterior,
+    ano,
+    mes,
+    prevAno,
+    prevMes,
+  };
+}
 
-  // 3. Prepare category comparison
+// --------------------------------------------------------
+// 🔧 Internal helper: Build structured & consistent prompt
+// --------------------------------------------------------
+function buildPrompt(
+  relAtual: any,
+  relAnterior: any,
+  ano: number,
+  mes: number,
+  prevAno: number,
+  prevMes: number
+) {
   const gastosAtuais = relAtual.porCategoria || {};
   const gastosAnteriores = relAnterior.porCategoria || {};
 
@@ -43,24 +60,23 @@ export async function getAnaliseMensal(arquivoId: number, usuarioId: number) {
     ...Object.keys(gastosAnteriores),
   ]);
 
-  const variacaoPercentual: Record<string, string> = {};
+  const variacao: Record<string, string> = {};
 
   allCats.forEach((cat) => {
-    const atual = gastosAtuais[cat] || 0;
-    const anterior = gastosAnteriores[cat] || 0;
+    const atual = gastosAtuais[cat] ?? 0;
+    const anterior = gastosAnteriores[cat] ?? 0;
 
     if (anterior > 0) {
       const v = ((atual - anterior) / anterior) * 100;
-      variacaoPercentual[cat] = `${v.toFixed(2)}%`;
+      variacao[cat] = `${v.toFixed(2)}%`;
     } else if (atual > 0) {
-      variacaoPercentual[cat] = "Novo gasto";
+      variacao[cat] = "Novo gasto";
     } else {
-      variacaoPercentual[cat] = "0.00%";
+      variacao[cat] = "0.00%";
     }
   });
 
-  // 4. Build Gemini prompt
-  const prompt = `
+  return `
 # 📊 Análise Financeira Mensal (${mes}/${ano})
 
 ## Dados do Mês Atual
@@ -72,26 +88,68 @@ export async function getAnaliseMensal(arquivoId: number, usuarioId: number) {
 ### Gastos por categoria:
 ${JSON.stringify(gastosAtuais, null, 2)}
 
+---
+
 ## Mês Anterior (${prevMes}/${prevAno})
+
 ### Gastos por categoria:
 ${JSON.stringify(gastosAnteriores, null, 2)}
 
-## Variação percentual:
-${JSON.stringify(variacaoPercentual, null, 2)}
+---
+
+## Variação percentual por categoria:
+${JSON.stringify(variacao, null, 2)}
 
 ---
 
 ## 🎯 Sua Tarefa
-1. Resumo geral
-2. Destaque a maior variação
-3. Outras variações relevantes
-4. Recomendações práticas
+1. Resumo geral das finanças
+2. Destaque a maior variação significativa
+3. Aponte outras mudanças importantes
+4. Dê recomendações práticas para otimização financeira
 
 Responda em Markdown.
 `;
+}
 
-  // 5. Gemini call
+// --------------------------------------------------------
+// 🧠 GET — Cached version (preferred)
+// --------------------------------------------------------
+export async function getAnaliseMensal(arquivoId: number, usuarioId: number) {
+  const { arquivoAtual, relAtual, relAnterior, ano, mes, prevAno, prevMes } =
+    await loadRelatorios(arquivoId, usuarioId);
+
+  // If already cached — return immediately
+  if (arquivoAtual.analysis && arquivoAtual.analysis.trim().length > 0) {
+    return { analise: arquivoAtual.analysis, cached: true };
+  }
+
+  // Build AI prompt
+  const prompt = buildPrompt(relAtual, relAnterior, ano, mes, prevAno, prevMes);
+
+  // Call Gemini
   const analise = await geminiService.generateAnalysis(prompt);
 
-  return { analise };
+  // Store in DB
+  await ArquivoRepo.storeAnalysis(arquivoId, analise);
+
+  return { analise, cached: false };
+}
+
+// --------------------------------------------------------
+// 🔄 POST — Force regeneration
+// --------------------------------------------------------
+export async function regenerateAnalise(arquivoId: number, usuarioId: number) {
+  const { arquivoAtual, relAtual, relAnterior, ano, mes, prevAno, prevMes } =
+    await loadRelatorios(arquivoId, usuarioId);
+
+  const prompt = buildPrompt(relAtual, relAnterior, ano, mes, prevAno, prevMes);
+
+  // Always fresh generation
+  const analise = await geminiService.generateAnalysis(prompt);
+
+  // Store updated version
+  await ArquivoRepo.storeAnalysis(arquivoId, analise);
+
+  return { analise, regenerated: true };
 }

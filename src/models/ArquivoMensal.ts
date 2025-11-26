@@ -18,6 +18,7 @@ export class ArquivoMensal extends Model<
   declare mes: number;
   declare conteudo: string; // JSON stored as TEXT
   declare saldoAcumulado: number | null;
+  declare analysis: string | null;
 
   static initModel(sequelize: Sequelize) {
     ArquivoMensal.init(
@@ -49,6 +50,10 @@ export class ArquivoMensal extends Model<
           allowNull: true,
           field: "saldo_acumulado",
         },
+        analysis: {
+          type: DataTypes.TEXT('long'), // long safe
+          allowNull: true,
+        }
       },
       {
         sequelize,

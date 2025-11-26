@@ -1,10 +1,12 @@
-// src/controllers/ArquivoMensalController.ts
 import { Request, Response } from "express";
 import * as ArquivoService from "../services/ArquivoMensalService.js";
 import * as ArquivoMensalGeminiService from "../services/ArquivoMensalGeminiService.js";
 import { generatePdfBuffer } from "../utils/arquivoMensalPdf.js";
 import { relatorioToCSV } from "../utils/arquivoMensalCsv.js";
 
+/* ============================================================
+   📌 Generate Monthly Report
+============================================================ */
 export async function gerarArquivoMensal(req: Request, res: Response) {
   try {
     const usuarioId = req.user.id;
@@ -23,6 +25,9 @@ export async function gerarArquivoMensal(req: Request, res: Response) {
   }
 }
 
+/* ============================================================
+   📌 Fetch JSON Report
+============================================================ */
 export async function getArquivoMensal(req: Request, res: Response) {
   try {
     const usuarioId = req.user.id;
@@ -39,6 +44,9 @@ export async function getArquivoMensal(req: Request, res: Response) {
   }
 }
 
+/* ============================================================
+   📌 Get AI Analysis (cached)
+============================================================ */
 export async function getAnaliseMensal(req: Request, res: Response) {
   try {
     const usuarioId = req.user.id;
@@ -48,7 +56,11 @@ export async function getAnaliseMensal(req: Request, res: Response) {
       return res.status(400).json({ message: "ID inválido" });
     }
 
-    const result = await ArquivoMensalGeminiService.getAnaliseMensal(arquivoId, usuarioId);
+    const result = await ArquivoMensalGeminiService.getAnaliseMensal(
+      arquivoId,
+      usuarioId
+    );
+
     return res.status(200).json(result);
   } catch (err: any) {
     console.error(err);
@@ -58,6 +70,35 @@ export async function getAnaliseMensal(req: Request, res: Response) {
   }
 }
 
+/* ============================================================
+   🔄 Force regenerate AI analysis
+============================================================ */
+export async function regenerateAnaliseMensal(req: Request, res: Response) {
+  try {
+    const usuarioId = req.user.id;
+    const arquivoId = Number(req.params.id);
+
+    if (isNaN(arquivoId)) {
+      return res.status(400).json({ message: "ID inválido" });
+    }
+
+    const result = await ArquivoMensalGeminiService.regenerateAnalise(
+      arquivoId,
+      usuarioId
+    );
+
+    return res.status(200).json(result);
+  } catch (err: any) {
+    console.error(err);
+    return res
+      .status(err.status || 500)
+      .json({ message: err.message || "Erro interno" });
+  }
+}
+
+/* ============================================================
+   📌 List all reports
+============================================================ */
 export async function listarArquivos(req: Request, res: Response) {
   try {
     const usuarioId = req.user.id;
@@ -71,6 +112,9 @@ export async function listarArquivos(req: Request, res: Response) {
   }
 }
 
+/* ============================================================
+   📌 CSV & PDF Export
+============================================================ */
 export async function downloadCsv(req: Request, res: Response) {
   try {
     const usuarioId = req.user.id;
@@ -82,7 +126,10 @@ export async function downloadCsv(req: Request, res: Response) {
 
     const csv = relatorioToCSV(r.relatorio);
     res.setHeader("Content-Type", "text/csv; charset=utf-8");
-    res.setHeader("Content-Disposition", `attachment; filename=arquivo_mensal_${ano}_${mes}.csv`);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=arquivo_mensal_${ano}_${mes}.csv`
+    );
     res.send(csv);
   } catch (err: any) {
     console.error(err);
@@ -99,11 +146,13 @@ export async function downloadPdf(req: Request, res: Response) {
     const r = await ArquivoService.getRelatorio(usuarioId, ano, mes);
     if (!r) return res.status(404).json({ message: "Relatório não encontrado" });
 
-    // generate PDF buffer using helper utility
     const buffer = await generatePdfBuffer(r.relatorio);
 
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename=arquivo_mensal_${ano}_${mes}.pdf`);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=arquivo_mensal_${ano}_${mes}.pdf`
+    );
     res.send(buffer);
   } catch (err: any) {
     console.error(err);

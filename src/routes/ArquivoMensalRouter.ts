@@ -1,4 +1,3 @@
-// src/routes/ArquivoMensalRouter.ts
 import { Router } from "express";
 import authenticateToken from "../middlewares/authenticateToken.js";
 import * as ArquivoController from "../controllers/ArquivoMensalController.js";
@@ -7,23 +6,36 @@ const router = Router();
 
 router.use(authenticateToken);
 
-// generate & store
+// ===================================================
+// 🧾 Generate Monthly Report
+// ===================================================
 router.post("/generate", ArquivoController.gerarArquivoMensal);
 
-/* -------------------------------------------------------
-   📌 AI Analysis (MUST come before "/:ano/:mes" routes!)
---------------------------------------------------------- */
+// ===================================================
+// 🧠 AI Analysis (cached + regeneration)
+// ===================================================
+
+// Get AI analysis (cached)
 router.get("/analise/:id", ArquivoController.getAnaliseMensal);
 
-// fetch json
+// Force regenerate AI analysis
+router.post(
+  "/analise/:id/regenerate",
+  ArquivoController.regenerateAnaliseMensal
+);
+
+// ===================================================
+// 📄 Fetch report JSON
+// ===================================================
 router.get("/:ano/:mes", ArquivoController.getArquivoMensal);
 
-// csv export
+// CSV
 router.get("/:ano/:mes/csv", ArquivoController.downloadCsv);
 
-// pdf export
+// PDF
 router.get("/:ano/:mes/pdf", ArquivoController.downloadPdf);
 
+// List summaries
 router.get("/", ArquivoController.listarArquivos);
 
 export default router;

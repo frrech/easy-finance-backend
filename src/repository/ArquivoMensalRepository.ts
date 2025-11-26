@@ -77,3 +77,15 @@ export async function deleteArquivo(id: number) {
 
   return deleted > 0;
 }
+
+export async function getAnalysis(id: number) {
+  const f = await ArquivoMensal.findByPk(id);
+  return f?.analysis ?? null;
+}
+
+export async function storeAnalysis(id: number, analysis: string) {
+  return ArquivoMensal.update(
+    { analysis },
+    { where: { id } }
+  );
+}
